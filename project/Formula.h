@@ -8,6 +8,7 @@
 #include <stack>
 
 #include "ASTNode.h"
+#include "Cluster.h"
 #include "MaximalConsistentSet.h"
 
 class Formula {
@@ -17,6 +18,7 @@ public:
     std::unordered_set<std::string> temporal_formulas;
     std::unordered_set<std::string> closure_set;
     std::vector<MaximalConsistentSet> MCS;
+    std::vector<Cluster> clusters;
 
     bool setup_formula(std::string& input);
     void clear();
@@ -26,6 +28,7 @@ public:
     void show_temporal_formulas();
     void show_closure_set();
     void show_MCS();
+    void show_clusters();
 
     ~Formula();
 private:
@@ -34,8 +37,8 @@ private:
     bool is_binary_op(const std::string& input, int pos);
     bool parse_and_build_tree(std::string& input, ASTNode*& node);
     void generate_closure_set();
-    void generate_MCS();
-    void _step(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases, int current);
+    void generate_MCS_and_clusters();
+    void _generate_MCS_step(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases, int current);
     void _get_mcs_from_valuations(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases);
     bool _evaluate(std::string& fmla, std::unordered_set<std::string>& true_bases, std::unordered_map<std::string, bool>& cache);
     void clear_node(ASTNode*& node);

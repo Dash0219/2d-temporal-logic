@@ -10,13 +10,14 @@ class Cluster;
 
 class MaximalConsistentSet {
 public:
-    MaximalConsistentSet(const std::unordered_set<std::string>* closure_set);
+    MaximalConsistentSet(const std::unordered_set<std::string>& closure_set);
     std::unordered_set<std::string> formulas;
+    bool is_cluster;
 
     bool operator<=(const MaximalConsistentSet& other) const;
     bool operator<=(const Cluster& other) const;
 
     void show_formulas();
 private:
-    const std::unordered_set<std::string>* closure_set;
+    const std::unordered_set<std::string>& closure_set;
 };

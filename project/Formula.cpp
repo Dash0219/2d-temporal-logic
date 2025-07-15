@@ -5,7 +5,7 @@ bool Formula::setup_formula(std::string& input) {
     content = input;
     if (!parse_and_build_tree(input, root)) return false;
     generate_closure_set();
-    generate_MCS();
+    generate_MCS_and_clusters();
     return true;
 }
 
@@ -64,6 +64,32 @@ void Formula::show_MCS() {
         }
         std::cout << "}\n";
     }
+    std::cout << std::string(32, '=') << "\n";
+}
+
+void Formula::show_clusters() {
+    std::cout << "clusters of " << content << ": " << clusters.size() << " elements\n";
+    for (const Cluster& cluster : clusters) {
+        std::cout << "{";
+        bool first = true;
+        for (const std::string& f : cluster.formulas) {
+            if (!first) std::cout << ", ";
+            std::cout << f;
+            first = false;
+        }
+        std::cout << "}\n";
+
+        std::cout << "representative: {";
+        first = true;
+        for (const std::string& f : cluster.representative.formulas) {
+            if (!first) std::cout << ", ";
+            std::cout << f;
+            first = false;
+        }
+        std::cout << "}\n";
+    }
+
+
     std::cout << std::string(32, '=') << "\n";
 }
 
@@ -144,32 +170,54 @@ void Formula::generate_closure_set() {
     closure_set.insert(new_members.begin(), new_members.end());
 }
 
-void Formula::generate_MCS() {
+void Formula::generate_MCS_and_clusters() {
     std::vector<std::string> props_and_temps(propositions.begin(), propositions.end());
     std::unordered_set<std::string> true_bases;
 
     for (const std::string& t : temporal_formulas) props_and_temps.push_back(t);
-    _step(props_and_temps, true_bases, 0);
+    _generate_MCS_step(props_and_temps, true_bases, 0);
 }
 
-void Formula::_step(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases, int current) {
+void Formula::_generate_MCS_step(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases, int current) {
     if (current == props_and_temps.size()) {
         _get_mcs_from_valuations(props_and_temps, true_bases);
         return;
     }
-    _step(props_and_temps, true_bases, current + 1);
+    _generate_MCS_step(props_and_temps, true_bases, current + 1);
     true_bases.insert(props_and_temps[current]);
-    _step(props_and_temps, true_bases, current + 1);
+    _generate_MCS_step(props_and_temps, true_bases, current + 1);
     true_bases.erase(props_and_temps[current]);
 }
 
 void Formula::_get_mcs_from_valuations(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases) {
-    MaximalConsistentSet mcs(&closure_set);
+    MaximalConsistentSet mcs(closure_set);
     std::unordered_map<std::string, bool> cache;
     for (const std::string& fmla : closure_set)
         if (_evaluate(const_cast<std::string&>(fmla), true_bases, cache))
             mcs.formulas.insert(fmla);
+    
     MCS.push_back(mcs);
+
+    // check all the existing clusters,
+    // add the new mcs to a cluster if possible
+    bool merged = false;
+    for (auto& cluster : clusters) {
+        if (cluster.representative <= mcs && mcs <= cluster.representative) {
+            for (std::string fmla : mcs.formulas)
+                cluster.formulas.insert(fmla);
+            merged = true;
+            break;
+        }
+    }
+
+    if (!merged) {
+        // create a new singleton cluster
+        std::cout << "HIII\n";
+        MaximalConsistentSet& last_mcs = MCS.back();
+        Cluster new_cluster(last_mcs);
+        std::cout << "HUHHH\n";
+        clusters.push_back(new_cluster);
+    }
 }
 
 bool Formula::_evaluate(std::string& fmla, std::unordered_set<std::string>& true_bases, std::unordered_map<std::string, bool>& cache) {
@@ -198,7 +246,8 @@ bool Formula::_evaluate(std::string& fmla, std::unordered_set<std::string>& true
                 break;
             }
         }
-        if (op == -1) return false;
+        if (op == -1 || depth != 0) return false;
+
         std::string l = fmla.substr(1, op - 1);
         std::string r = fmla.substr(op + 2, n - op - 3);
         if (fmla[op] == '/' && fmla[op + 1] == '\\') {

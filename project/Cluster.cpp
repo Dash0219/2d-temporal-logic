@@ -1,12 +1,15 @@
 #include "Cluster.h"
 #include "MaximalConsistentSet.h"
 
+Cluster::Cluster(MaximalConsistentSet& mcs)
+    : representative(mcs), formulas(mcs.formulas) {}
+
 bool Cluster::operator<=(const Cluster& other) const {
-    return *this->representative <= *other.representative;
+    return this->representative <= other.representative;
 }
 
 bool Cluster::operator<=(const MaximalConsistentSet& other) const {
-    return *this->representative <= other;
+    return this->representative <= other;
 }
 
 void Cluster::show_formulas() {

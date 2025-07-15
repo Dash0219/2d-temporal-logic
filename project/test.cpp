@@ -354,7 +354,7 @@ int main() {
         // "(Gp/\\p)"
         // "(~F~p/\\p)"
         // "(Pp/\\~Fp)",
-        "PPp"
+        "PPp",
         // "HHHHHHHHHp", // 10
         // "HHHHHHHHHHHHHHHHHHHp", // 20
     };
@@ -369,8 +369,10 @@ int main() {
             // fmla.show_tree();
             // fmla.show_propositions();
             // fmla.show_temporal_formulas();
+
             fmla.show_closure_set();
             fmla.show_MCS();
+            fmla.show_clusters();
 
             // debugging the <= operator
             // int m = 2;
@@ -389,13 +391,28 @@ int main() {
 
         // make the graph 
         // formatted for: https://csacademy.com/app/graph_editor/
-        int n = fmla.MCS.size();
+        // int n = fmla.MCS.size();
+        // std::vector<std::unordered_set<int>> g(n, std::unordered_set<int>());
+        // // std::vector<std::vector<int>> g(n, std::vector<int>());
+        // for (int i = 0 ; i < n; ++i) {
+        //     for (int j = 0; j < n; ++j) {
+        //         if (i == j) continue;
+        //         if (fmla.MCS[i] <= fmla.MCS[j]) g[i].insert(j);
+        //         // if (fmla.MCS[i] <= fmla.MCS[j]) g[i].push_back(j);
+        //     }
+        // }
+
+        // for (int i = 0; i < n; ++i) {
+        //     for (int n : g[i]) std::cout << i << " " << n << "\n";
+        // }
+
+        int n = fmla.clusters.size();
         std::vector<std::unordered_set<int>> g(n, std::unordered_set<int>());
         // std::vector<std::vector<int>> g(n, std::vector<int>());
         for (int i = 0 ; i < n; ++i) {
             for (int j = 0; j < n; ++j) {
                 if (i == j) continue;
-                if (fmla.MCS[i] <= fmla.MCS[j]) g[i].insert(j);
+                if (fmla.clusters[i].representative <= fmla.clusters[j].representative) g[i].insert(j);
                 // if (fmla.MCS[i] <= fmla.MCS[j]) g[i].push_back(j);
             }
         }
