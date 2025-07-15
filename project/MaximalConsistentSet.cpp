@@ -6,7 +6,7 @@ MaximalConsistentSet::MaximalConsistentSet(const std::unordered_set<std::string>
     : closure_set(closure) {}
 
 bool MaximalConsistentSet::operator<=(const MaximalConsistentSet& other) const {
-    for (const std::string& fmla : closure_set) {
+    for (const std::string fmla : closure_set) {
         if (fmla[0] == 'F') {
             std::string phi = fmla.substr(1);
             if (other.formulas.contains(phi) && !formulas.contains(fmla) ||

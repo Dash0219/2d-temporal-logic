@@ -79,14 +79,14 @@ void Formula::show_clusters() {
         }
         std::cout << "}\n";
 
-        std::cout << "representative: {";
+        std::cout << "size: " << cluster.size << ", representative: {";
         first = true;
         for (const std::string& f : cluster.representative.formulas) {
             if (!first) std::cout << ", ";
             std::cout << f;
             first = false;
         }
-        std::cout << "}\n";
+        std::cout << "}\n\n";
     }
 
 
@@ -203,6 +203,7 @@ void Formula::_get_mcs_from_valuations(std::vector<std::string>& props_and_temps
     bool merged = false;
     for (auto& cluster : clusters) {
         if (cluster.representative <= mcs && mcs <= cluster.representative) {
+            ++cluster.size;
             for (std::string fmla : mcs.formulas)
                 cluster.formulas.insert(fmla);
             merged = true;
@@ -212,10 +213,8 @@ void Formula::_get_mcs_from_valuations(std::vector<std::string>& props_and_temps
 
     if (!merged) {
         // create a new singleton cluster
-        std::cout << "HIII\n";
-        MaximalConsistentSet& last_mcs = MCS.back();
+        MaximalConsistentSet last_mcs = MCS.back();
         Cluster new_cluster(last_mcs);
-        std::cout << "HUHHH\n";
         clusters.push_back(new_cluster);
     }
 }
