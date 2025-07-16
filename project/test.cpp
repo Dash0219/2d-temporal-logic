@@ -348,13 +348,13 @@ int main() {
         // "~((p->p)->(q->q))",
         // "(q/\\~(q/\\(p/\\q)))",
         // "~((p0->F~(p1/\\p2))->(Pq->Pq))",
-        "(~((p0->~(p1/\\p2))->(p3->p4))/\\~((p5->~(p6/\\p7))->(p8->p9)))",
+        // "(~((p0->~(p1/\\p2))->(p3->p4))/\\~((p5->~(p6/\\p7))->(p8->p9)))",
         // "(~((p0->~(p1/\\p2))->(p3->p4))/\\~((p5->~(p6/\\p7))->(p8->Pp9)))",
         // "~~~~Fp", 
         // "G(Fp\\/(Pp\\/p))",
         // "(p/\\F(q->Pp))",
         // "(Gp/\\p)"
-        // "(~F~p/\\p)"
+        "(~F~p/\\p)"
         // "(Pp/\\~Fp)",
         // "PPp",
         // "HHHHHHHHHp", // 10
@@ -373,7 +373,8 @@ int main() {
             // fmla.show_temporal_formulas();
 
             fmla.show_closure_set();
-            fmla.show_MCS();
+            // fmla.show_MCS();
+            fmla.show_irreflexives();
             fmla.show_clusters();
 
             // debugging the <= operator
@@ -408,19 +409,36 @@ int main() {
         //     for (int n : g[i]) std::cout << i << " " << n << "\n";
         // }
 
-        int n = fmla.clusters.size();
-        std::vector<std::unordered_set<int>> g(n, std::unordered_set<int>());
+        std::vector<std::vector<std::string>> g_i(fmla.irreflexives.size(), std::vector<std::string>());
+        std::vector<std::vector<std::string>> g_c(fmla.clusters.size(), std::vector<std::string>());
         // std::vector<std::vector<int>> g(n, std::vector<int>());
-        for (int i = 0 ; i < n; ++i) {
-            for (int j = 0; j < n; ++j) {
-                if (i == j) continue;
-                if (fmla.clusters[i].representative <= fmla.clusters[j].representative) g[i].insert(j);
-                // if (fmla.MCS[i] <= fmla.MCS[j]) g[i].push_back(j);
+        for (int i = 0 ; i < fmla.irreflexives.size(); ++i) {
+            for (int j = 0; j < fmla.irreflexives.size(); ++j) {
+                if (fmla.irreflexives[i] <= fmla.irreflexives[j]) {
+                    g_i[i].push_back("i" + std::to_string(j));
+                    std::cout << "i" << i << " " << "i" << j << "\n";
+                }
+            }
+            for (int j = 0; j < fmla.clusters.size(); ++j) {
+                if (fmla.irreflexives[i] <= fmla.clusters[j].representative) {
+                    g_i[i].push_back("c" + std::to_string(j));
+                    std::cout << "i" << i << " " << "c" << j << "\n";
+                }
             }
         }
-
-        for (int i = 0; i < n; ++i) {
-            for (int n : g[i]) std::cout << i << " " << n << "\n";
+        for (int i = 0 ; i < fmla.clusters.size(); ++i) {
+            for (int j = 0; j < fmla.irreflexives.size(); ++j) {
+                if (fmla.clusters[i].representative <= fmla.irreflexives[j]) {
+                    g_i[i].push_back("i" + std::to_string(j));
+                    std::cout << "c" << i << " " << "i" << j << "\n";
+                }
+            }
+            for (int j = 0; j < fmla.clusters.size(); ++j) {
+                if (fmla.clusters[i].representative <= fmla.clusters[j].representative) {
+                    g_i[i].push_back("c" + std::to_string(j));
+                    std::cout << "c" << i << " " << "c" << j << "\n";
+                }
+            }
         }
 
         fmla.clear();

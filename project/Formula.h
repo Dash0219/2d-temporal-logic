@@ -18,6 +18,7 @@ public:
     std::unordered_set<std::string> temporal_formulas;
     std::unordered_set<std::string> closure_set;
     std::vector<MaximalConsistentSet> MCS;
+    std::vector<MaximalConsistentSet> irreflexives;
     std::vector<Cluster> clusters;
 
     bool setup_formula(std::string& input);
@@ -28,6 +29,7 @@ public:
     void show_temporal_formulas();
     void show_closure_set();
     void show_MCS();
+    void show_irreflexives();
     void show_clusters();
 
     ~Formula();
