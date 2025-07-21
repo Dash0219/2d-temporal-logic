@@ -16,6 +16,8 @@ public:
     // one mcs to make <= comparisons
     MaximalConsistentSet representative;
 
+    bool operator==(const Cluster& other) const;
+    
     bool operator<=(const MaximalConsistentSet& other) const;
     bool operator<=(const Cluster& other) const;
 

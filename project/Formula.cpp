@@ -68,9 +68,10 @@ void Formula::show_MCS() {
 }
 
 void Formula::show_irreflexives() {
+    int idx = 0;
     std::cout << "irreflexives of " << content << ": " << irreflexives.size() << " elements\n";
     for (const MaximalConsistentSet& mcs : irreflexives) {
-        std::cout << "{";
+        std::cout << std::to_string(idx++) << ": {";
         bool first = true;
         for (const std::string& f : mcs.formulas) {
             if (!first) std::cout << ", ";
@@ -83,9 +84,10 @@ void Formula::show_irreflexives() {
 }
 
 void Formula::show_clusters() {
+    int idx = 0;
     std::cout << "clusters of " << content << ": " << clusters.size() << " elements\n";
     for (const Cluster& cluster : clusters) {
-        std::cout << "{";
+        std::cout << std::to_string(idx++) << ": {";
         bool first = true;
         for (const std::string& f : cluster.formulas) {
             if (!first) std::cout << ", ";
@@ -228,9 +230,7 @@ void Formula::_get_mcs_from_valuations(std::vector<std::string>& props_and_temps
 
     if (!merged) {
         if (mcs <= mcs) {
-            // create a new singleton cluster
-            // MaximalConsistentSet last_mcs = MCS.back();
-            // Cluster new_cluster(last_mcs);
+            // create a new singleton cluster if the mcs is reflexive
             Cluster new_cluster(mcs);
             clusters.push_back(new_cluster);
         } else {

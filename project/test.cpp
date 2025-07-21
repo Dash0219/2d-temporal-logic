@@ -351,13 +351,16 @@ int main() {
         // "(~((p0->~(p1/\\p2))->(p3->p4))/\\~((p5->~(p6/\\p7))->(p8->p9)))",
         // "(~((p0->~(p1/\\p2))->(p3->p4))/\\~((p5->~(p6/\\p7))->(p8->Pp9)))",
         // "~~~~Fp", 
-        // "G(Fp\\/(Pp\\/p))",
+        // "P(Fp\\/(Pp\\/p))",
+        // "(Fp\\/(Pp\\/p))",
         // "(p/\\F(q->Pp))",
-        // "(Gp/\\p)"
-        "(~F~p/\\p)"
+        // "(F(p/\\q)/\\Pr)"
+        // "(~F~p/\\p)"
         // "(Pp/\\~Fp)",
-        // "PPp",
-        // "HHHHHHHHHp", // 10
+        "(~Fp/\\~F~p)",
+        // "(Fp/\\Gp)",
+        // "PPPPp",
+        // "PPPPPPPPPp", // 10
         // "HHHHHHHHHHHHHHHHHHHp", // 20
     };
 
@@ -385,61 +388,115 @@ int main() {
             // std::cout << "n: "; fmla.MCS[n].show_formulas();
             // std::cout << "m <= n: " << (fmla.MCS[m] <= fmla.MCS[n]) << "\n";
             // std::cout << "n <= m: " << (fmla.MCS[n] <= fmla.MCS[m]) << "\n";
+
+            // debugging the == operator
+            // int m = 2;
+            // int n = 3;
+            // std::cout << std::boolalpha;
+            // std::cout << "m: "; fmla.MCS[m].show_formulas();
+            // std::cout << "n: "; fmla.MCS[n].show_formulas();
+            // std::cout << "m == m: " << (fmla.MCS[m] == fmla.MCS[m]) << "\n";
+            // std::cout << "n == n: " << (fmla.MCS[n] == fmla.MCS[n]) << "\n";
+            // std::cout << "m == n: " << (fmla.MCS[m] == fmla.MCS[n]) << "\n";
         } else {
             std::cout << "is not a formula" << "\n";
             std::cout << std::string(32, '=') << "\n";
         }
 
-        // TODO: maybe bug? <= is not reflexive sometimes is that correct
-
         // make the graph 
         // formatted for: https://csacademy.com/app/graph_editor/
-        // int n = fmla.MCS.size();
-        // std::vector<std::unordered_set<int>> g(n, std::unordered_set<int>());
-        // // std::vector<std::vector<int>> g(n, std::vector<int>());
-        // for (int i = 0 ; i < n; ++i) {
-        //     for (int j = 0; j < n; ++j) {
-        //         if (i == j) continue;
-        //         if (fmla.MCS[i] <= fmla.MCS[j]) g[i].insert(j);
-        //         // if (fmla.MCS[i] <= fmla.MCS[j]) g[i].push_back(j);
+
+        // std::vector<std::vector<std::string>> g_i(fmla.irreflexives.size(), std::vector<std::string>());
+        // std::vector<std::vector<std::string>> g_c(fmla.clusters.size(), std::vector<std::string>());
+        // for (int i = 0 ; i < fmla.irreflexives.size(); ++i) {
+        //     for (int j = 0; j < fmla.irreflexives.size(); ++j) {
+        //         if (fmla.irreflexives[i] <= fmla.irreflexives[j]) {
+        //             g_i[i].push_back("i" + std::to_string(j));
+        //             std::cout << "i" << i << " " << "i" << j << "\n";
+        //         }
+        //     }
+        //     for (int j = 0; j < fmla.clusters.size(); ++j) {
+        //         if (fmla.irreflexives[i] <= fmla.clusters[j].representative) {
+        //             g_i[i].push_back("c" + std::to_string(j));
+        //             std::cout << "i" << i << " " << "c" << j << "\n";
+        //         }
         //     }
         // }
-
-        // for (int i = 0; i < n; ++i) {
-        //     for (int n : g[i]) std::cout << i << " " << n << "\n";
+        // for (int i = 0 ; i < fmla.clusters.size(); ++i) {
+        //     for (int j = 0; j < fmla.irreflexives.size(); ++j) {
+        //         if (fmla.clusters[i].representative <= fmla.irreflexives[j]) {
+        //             g_c[i].push_back("i" + std::to_string(j));
+        //             std::cout << "c" << i << " " << "i" << j << "\n";
+        //         }
+        //     }
+        //     for (int j = 0; j < fmla.clusters.size(); ++j) {
+        //         if (fmla.clusters[i].representative <= fmla.clusters[j].representative) {
+        //             g_c[i].push_back("c" + std::to_string(j));
+        //             std::cout << "c" << i << " " << "c" << j << "\n";
+        //         }
+        //     }
         // }
-
-        std::vector<std::vector<std::string>> g_i(fmla.irreflexives.size(), std::vector<std::string>());
-        std::vector<std::vector<std::string>> g_c(fmla.clusters.size(), std::vector<std::string>());
-        // std::vector<std::vector<int>> g(n, std::vector<int>());
-        for (int i = 0 ; i < fmla.irreflexives.size(); ++i) {
-            for (int j = 0; j < fmla.irreflexives.size(); ++j) {
+        
+        int size_i = fmla.irreflexives.size();
+        int size_c = fmla.clusters.size();
+        std::vector<std::vector<bool>> g(size_i + size_c, std::vector<bool>(size_i + size_c, false));
+        for (int i = 0 ; i < size_i; ++i) {
+            for (int j = 0; j < size_i; ++j) {
                 if (fmla.irreflexives[i] <= fmla.irreflexives[j]) {
-                    g_i[i].push_back("i" + std::to_string(j));
+                    g[i][j] = true;
                     std::cout << "i" << i << " " << "i" << j << "\n";
                 }
             }
-            for (int j = 0; j < fmla.clusters.size(); ++j) {
+            for (int j = 0; j < size_c; ++j) {
                 if (fmla.irreflexives[i] <= fmla.clusters[j].representative) {
-                    g_i[i].push_back("c" + std::to_string(j));
+                    g[i][size_i + j] = true;
                     std::cout << "i" << i << " " << "c" << j << "\n";
                 }
             }
         }
-        for (int i = 0 ; i < fmla.clusters.size(); ++i) {
-            for (int j = 0; j < fmla.irreflexives.size(); ++j) {
+        for (int i = 0 ; i < size_c; ++i) {
+            for (int j = 0; j < size_i; ++j) {
                 if (fmla.clusters[i].representative <= fmla.irreflexives[j]) {
-                    g_i[i].push_back("i" + std::to_string(j));
+                    g[size_i + i][j] = true;
                     std::cout << "c" << i << " " << "i" << j << "\n";
                 }
             }
-            for (int j = 0; j < fmla.clusters.size(); ++j) {
+            for (int j = 0; j < size_c; ++j) {
                 if (fmla.clusters[i].representative <= fmla.clusters[j].representative) {
-                    g_i[i].push_back("c" + std::to_string(j));
+                    g[size_i + i][size_i + j] = true;
                     std::cout << "c" << i << " " << "c" << j << "\n";
                 }
             }
         }
+        std::cout << std::string(32, '=') << "\n";
+
+        
+        // std::vector<std::vector<bool>> reduced_g(size_i + size_c, std::vector<bool>(size_i + size_c, false));
+        for (int i = 0; i < size_i + size_c; ++i) 
+            g[i][i] = false;
+
+        std::vector<std::vector<bool>> original = g;
+        for (int i = 0; i < size_i + size_c; ++i) {
+            for (int j = 0; j < size_i + size_c; ++j) {
+                // if (!g[i][j]) continue;
+                for (int k = 0; k < size_i + size_c; ++k) {
+                    // if (g[j][k]) g[i][k] = false;
+                    if (original[i][j] && original[j][k]) g[i][k] = false;
+                }
+            }
+        }
+
+        for (int i = 0; i < size_i + size_c; ++i) {
+            for (int j = 0; j < size_i + size_c; ++j) {
+                if (!g[i][j]) continue;
+                std::string node_a;
+                std::string node_b;
+                (i < size_i) ? node_a = "i" + std::to_string(i) : node_a = "c" + std::to_string(i - size_i);
+                (j < size_i) ? node_b = "i" + std::to_string(j) : node_b = "c" + std::to_string(j - size_i);
+                std::cout << node_a << " " << node_b << "\n";
+            }
+        }
+
 
         fmla.clear();
         // print_memory_usage();

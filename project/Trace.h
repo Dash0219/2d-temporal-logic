@@ -11,7 +11,9 @@ public:
     using Element = std::variant<MaximalConsistentSet, Cluster>;
     std::vector<Element> sequence;
 
-    Element get_front();
-    Element get_back();
+    bool operator==(const Trace& other) const;
+
+    bool push_back(Element elem);
     bool join(Trace other);
+    void show_sequence();
 };
