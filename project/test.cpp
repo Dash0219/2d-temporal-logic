@@ -9,6 +9,8 @@
 #include "Formula.h"
 #include "ASTNode.h"
 #include "MaximalConsistentSet.h"
+#include "Cluster.h"
+#include "Trace.h"
 
 
 /*
@@ -332,6 +334,120 @@ public:
 };
 
 */
+// make the graph 
+// formatted for: https://csacademy.com/app/graph_editor/
+void create_and_print_graph(Formula& fmla) {
+    int size_i = fmla.irreflexives.size();
+    int size_c = fmla.clusters.size();
+    std::vector<std::vector<bool>> g(size_i + size_c, std::vector<bool>(size_i + size_c, false));
+    for (int i = 0 ; i < size_i; ++i) {
+        for (int j = 0; j < size_i; ++j) {
+            if (fmla.irreflexives[i] <= fmla.irreflexives[j]) {
+                g[i][j] = true;
+                std::cout << "i" << i << " " << "i" << j << "\n";
+            }
+        }
+        for (int j = 0; j < size_c; ++j) {
+            if (fmla.irreflexives[i] <= fmla.clusters[j].representative) {
+                g[i][size_i + j] = true;
+                std::cout << "i" << i << " " << "c" << j << "\n";
+            }
+        }
+    }
+    for (int i = 0 ; i < size_c; ++i) {
+        for (int j = 0; j < size_i; ++j) {
+            if (fmla.clusters[i].representative <= fmla.irreflexives[j]) {
+                g[size_i + i][j] = true;
+                std::cout << "c" << i << " " << "i" << j << "\n";
+            }
+        }
+        for (int j = 0; j < size_c; ++j) {
+            if (fmla.clusters[i].representative <= fmla.clusters[j].representative) {
+                g[size_i + i][size_i + j] = true;
+                std::cout << "c" << i << " " << "c" << j << "\n";
+            }
+        }
+    }
+    std::cout << std::string(32, '=') << "\n";
+
+    // trasitive reduction
+    for (int i = 0; i < size_i + size_c; ++i) 
+        g[i][i] = false;
+
+    std::vector<std::vector<bool>> original = g;
+    for (int i = 0; i < size_i + size_c; ++i) {
+        for (int j = 0; j < size_i + size_c; ++j) {
+            // if (!g[i][j]) continue;
+            for (int k = 0; k < size_i + size_c; ++k) {
+                // if (g[j][k]) g[i][k] = false;
+                if (original[i][j] && original[j][k]) g[i][k] = false;
+            }
+        }
+    }
+
+    for (int i = 0; i < size_i + size_c; ++i) {
+        for (int j = 0; j < size_i + size_c; ++j) {
+            if (!g[i][j]) continue;
+            std::string node_a;
+            std::string node_b;
+            (i < size_i) ? node_a = "i" + std::to_string(i) : node_a = "c" + std::to_string(i - size_i);
+            (j < size_i) ? node_b = "i" + std::to_string(j) : node_b = "c" + std::to_string(j - size_i);
+            std::cout << node_a << " " << node_b << "\n";
+        }
+    }
+
+    std::cout << std::string(32, '=') << "\n";
+}
+
+// use (F(p/\q)/\Pr) as the testcase
+void trace_test(Formula& fmla) {
+    std::cout << std::boolalpha;
+
+    Trace a, b, c, d, e, f, g;
+    a.push_back(fmla.clusters[1]);
+    a.push_back(fmla.irreflexives[3]);
+    a.push_back(fmla.clusters[3]);
+
+    b.push_back(fmla.clusters[3]);
+    b.push_back(fmla.irreflexives[1]);
+    b.push_back(fmla.clusters[2]);
+
+    c.push_back(fmla.clusters[1]);
+    c.push_back(fmla.irreflexives[3]);
+
+    d.push_back(fmla.clusters[1]);
+    d.push_back(fmla.irreflexives[3]);
+
+    e.push_back(fmla.irreflexives[1]);
+    e.push_back(fmla.clusters[2]);
+
+    f.push_back(fmla.clusters[1]);
+    f.push_back(fmla.irreflexives[3]);
+
+    g.push_back(fmla.irreflexives[3]);
+    g.push_back(fmla.clusters[3]);
+    g.push_back(fmla.irreflexives[1]);
+    g.push_back(fmla.clusters[2]);
+
+    a.join(b);
+    b.join(a);
+    c.join(b);
+    d.join(e);
+    f.join(g);
+
+    std::cout << a.sequence.size() << "\n"; // 5
+    std::cout << b.sequence.size() << "\n"; // 3
+    std::cout << c.sequence.size() << "\n"; // 5
+    std::cout << d.sequence.size() << "\n"; // 2
+    std::cout << e.sequence.size() << "\n"; // 2
+    std::cout << f.sequence.size() << "\n"; // 5
+    std::cout << g.sequence.size() << "\n"; // 4
+
+    std::cout << a.join(c) << "\n"; // false
+    std::cout << (a == c) << "\n"; // true
+
+    std::cout << std::string(32, '=') << "\n";
+}
 
 void print_memory_usage() {
     struct rusage usage;
@@ -354,10 +470,10 @@ int main() {
         // "P(Fp\\/(Pp\\/p))",
         // "(Fp\\/(Pp\\/p))",
         // "(p/\\F(q->Pp))",
-        // "(F(p/\\q)/\\Pr)"
+        "(F(p/\\q)/\\Pr)"
         // "(~F~p/\\p)"
         // "(Pp/\\~Fp)",
-        "(~Fp/\\~F~p)",
+        // "(~Fp/\\~F~p)",
         // "(Fp/\\Gp)",
         // "PPPPp",
         // "PPPPPPPPPp", // 10
@@ -379,127 +495,17 @@ int main() {
             // fmla.show_MCS();
             fmla.show_irreflexives();
             fmla.show_clusters();
-
-            // debugging the <= operator
-            // int m = 2;
-            // int n = 2;
-            // std::cout << std::boolalpha;
-            // std::cout << "m: "; fmla.MCS[m].show_formulas();
-            // std::cout << "n: "; fmla.MCS[n].show_formulas();
-            // std::cout << "m <= n: " << (fmla.MCS[m] <= fmla.MCS[n]) << "\n";
-            // std::cout << "n <= m: " << (fmla.MCS[n] <= fmla.MCS[m]) << "\n";
-
-            // debugging the == operator
-            // int m = 2;
-            // int n = 3;
-            // std::cout << std::boolalpha;
-            // std::cout << "m: "; fmla.MCS[m].show_formulas();
-            // std::cout << "n: "; fmla.MCS[n].show_formulas();
-            // std::cout << "m == m: " << (fmla.MCS[m] == fmla.MCS[m]) << "\n";
-            // std::cout << "n == n: " << (fmla.MCS[n] == fmla.MCS[n]) << "\n";
-            // std::cout << "m == n: " << (fmla.MCS[m] == fmla.MCS[n]) << "\n";
         } else {
             std::cout << "is not a formula" << "\n";
             std::cout << std::string(32, '=') << "\n";
         }
 
-        // make the graph 
-        // formatted for: https://csacademy.com/app/graph_editor/
-
-        // std::vector<std::vector<std::string>> g_i(fmla.irreflexives.size(), std::vector<std::string>());
-        // std::vector<std::vector<std::string>> g_c(fmla.clusters.size(), std::vector<std::string>());
-        // for (int i = 0 ; i < fmla.irreflexives.size(); ++i) {
-        //     for (int j = 0; j < fmla.irreflexives.size(); ++j) {
-        //         if (fmla.irreflexives[i] <= fmla.irreflexives[j]) {
-        //             g_i[i].push_back("i" + std::to_string(j));
-        //             std::cout << "i" << i << " " << "i" << j << "\n";
-        //         }
-        //     }
-        //     for (int j = 0; j < fmla.clusters.size(); ++j) {
-        //         if (fmla.irreflexives[i] <= fmla.clusters[j].representative) {
-        //             g_i[i].push_back("c" + std::to_string(j));
-        //             std::cout << "i" << i << " " << "c" << j << "\n";
-        //         }
-        //     }
-        // }
-        // for (int i = 0 ; i < fmla.clusters.size(); ++i) {
-        //     for (int j = 0; j < fmla.irreflexives.size(); ++j) {
-        //         if (fmla.clusters[i].representative <= fmla.irreflexives[j]) {
-        //             g_c[i].push_back("i" + std::to_string(j));
-        //             std::cout << "c" << i << " " << "i" << j << "\n";
-        //         }
-        //     }
-        //     for (int j = 0; j < fmla.clusters.size(); ++j) {
-        //         if (fmla.clusters[i].representative <= fmla.clusters[j].representative) {
-        //             g_c[i].push_back("c" + std::to_string(j));
-        //             std::cout << "c" << i << " " << "c" << j << "\n";
-        //         }
-        //     }
-        // }
-        
-        int size_i = fmla.irreflexives.size();
-        int size_c = fmla.clusters.size();
-        std::vector<std::vector<bool>> g(size_i + size_c, std::vector<bool>(size_i + size_c, false));
-        for (int i = 0 ; i < size_i; ++i) {
-            for (int j = 0; j < size_i; ++j) {
-                if (fmla.irreflexives[i] <= fmla.irreflexives[j]) {
-                    g[i][j] = true;
-                    std::cout << "i" << i << " " << "i" << j << "\n";
-                }
-            }
-            for (int j = 0; j < size_c; ++j) {
-                if (fmla.irreflexives[i] <= fmla.clusters[j].representative) {
-                    g[i][size_i + j] = true;
-                    std::cout << "i" << i << " " << "c" << j << "\n";
-                }
-            }
-        }
-        for (int i = 0 ; i < size_c; ++i) {
-            for (int j = 0; j < size_i; ++j) {
-                if (fmla.clusters[i].representative <= fmla.irreflexives[j]) {
-                    g[size_i + i][j] = true;
-                    std::cout << "c" << i << " " << "i" << j << "\n";
-                }
-            }
-            for (int j = 0; j < size_c; ++j) {
-                if (fmla.clusters[i].representative <= fmla.clusters[j].representative) {
-                    g[size_i + i][size_i + j] = true;
-                    std::cout << "c" << i << " " << "c" << j << "\n";
-                }
-            }
-        }
-        std::cout << std::string(32, '=') << "\n";
-
-        
-        // std::vector<std::vector<bool>> reduced_g(size_i + size_c, std::vector<bool>(size_i + size_c, false));
-        for (int i = 0; i < size_i + size_c; ++i) 
-            g[i][i] = false;
-
-        std::vector<std::vector<bool>> original = g;
-        for (int i = 0; i < size_i + size_c; ++i) {
-            for (int j = 0; j < size_i + size_c; ++j) {
-                // if (!g[i][j]) continue;
-                for (int k = 0; k < size_i + size_c; ++k) {
-                    // if (g[j][k]) g[i][k] = false;
-                    if (original[i][j] && original[j][k]) g[i][k] = false;
-                }
-            }
-        }
-
-        for (int i = 0; i < size_i + size_c; ++i) {
-            for (int j = 0; j < size_i + size_c; ++j) {
-                if (!g[i][j]) continue;
-                std::string node_a;
-                std::string node_b;
-                (i < size_i) ? node_a = "i" + std::to_string(i) : node_a = "c" + std::to_string(i - size_i);
-                (j < size_i) ? node_b = "i" + std::to_string(j) : node_b = "c" + std::to_string(j - size_i);
-                std::cout << node_a << " " << node_b << "\n";
-            }
-        }
-
-
-        fmla.clear();
+        // debugging functions
+        create_and_print_graph(fmla);
+        // trace_test(fmla);
         // print_memory_usage();
+                
+        fmla.clear();
     }
 
     return 0;

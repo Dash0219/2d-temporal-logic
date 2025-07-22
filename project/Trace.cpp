@@ -16,6 +16,11 @@ bool Trace::operator==(const Trace& other) const {
 }
 
 bool Trace::push_back(Element elem) {
+    if (sequence.size() == 0) {
+        sequence.push_back(elem);
+        return true;
+    }
+
     if (
         std::holds_alternative<Cluster>(sequence.back())
      && std::holds_alternative<MaximalConsistentSet>(elem)
@@ -96,4 +101,8 @@ void Trace::show_sequence() {
             std::get<Cluster>(elem).show_formulas();
         }
     }
+}
+
+int Trace::size() {
+    return sequence.size();
 }

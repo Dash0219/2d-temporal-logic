@@ -9,6 +9,7 @@
 class Trace {
 public: 
     using Element = std::variant<MaximalConsistentSet, Cluster>;
+
     std::vector<Element> sequence;
 
     bool operator==(const Trace& other) const;
@@ -16,4 +17,5 @@ public:
     bool push_back(Element elem);
     bool join(Trace other);
     void show_sequence();
+    int size();
 };

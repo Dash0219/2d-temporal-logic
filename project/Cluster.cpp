@@ -45,11 +45,3 @@ void Cluster::show_formulas() {
 // TODO:
 // - write Processor class, reformat Formula class, separate concerns
 // all non data container logic should go there
-// - integrate Cluster class to the rest (which other class needs it)
-
-/* 
-finding cliques is O(2^n), but i think we don't need this.
-what if i build the cluster when i build the graph? 
-cuz transitivity i can check <= with the current representative and i'll know the new mcs is in the cluster
-*/
-
