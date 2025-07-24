@@ -21,9 +21,9 @@ bool MaximalConsistentSet::operator<=(const MaximalConsistentSet& other) const {
             std::string phi = fmla.substr(1);
             if (formulas.contains(phi) && !other.formulas.contains(fmla) ||
                 formulas.contains(fmla) && !other.formulas.contains(fmla)) return false;
-        }
+        } else
         // TODO: debug these are wrong i think
-        else if (fmla[0] == 'G') {
+        if (fmla[0] == 'G') {
             std::string phi = fmla.substr(1);
             if (formulas.contains(fmla) && !other.formulas.contains(phi) ||
                 formulas.contains(fmla) && !other.formulas.contains(fmla)) return false;

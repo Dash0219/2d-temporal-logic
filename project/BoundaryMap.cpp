@@ -9,13 +9,20 @@ bool BoundaryMap::is_simple() {
     return plus.has_value() && minus.has_value() && plus == minus;
 }
 
-bool BoundaryMap::is_closed() {
-    return l.has_value() && r.has_value() && t.has_value() && b.has_value() && n.has_value() && e.has_value() && s.has_value() && w.has_value() && plus.has_value() && minus.has_value();
+bool BoundaryMap::is_open() {
+    return !l.has_value() && !r.has_value() && !t.has_value() && !b.has_value() 
+        && !n.has_value() && !e.has_value() && !s.has_value() && !w.has_value() 
+        && plus.has_value() && minus.has_value();
+        // TODO: plus and minus cannot have defects, write a function to check that
 }
 
 bool BoundaryMap::is_fabricated() {
-    // TODO: the main algorithm lmao
-    if (is_simple()) return true;
+    // TODO: the main algorithm lmaofd
+    if (is_simple()) {
+        return true;
+    } else {
+
+    }
 
     return false;
 }

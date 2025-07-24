@@ -19,7 +19,7 @@ public:
     BoundaryMap(Cluster& cluster);
     
     bool is_simple();
-    bool is_closed();
+    bool is_open();
     bool is_fabricated();
     bool join(BoundaryMap& other, int direction);
     bool limit(); // TODO: we have a different def than the paper
