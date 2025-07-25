@@ -2,7 +2,7 @@
 #include "MaximalConsistentSet.h"
 
 Cluster::Cluster(MaximalConsistentSet mcs)
-    : size(1), representative(mcs), formulas(mcs.formulas) {}
+    : size(1), representative(mcs), formulas(mcs.formulas), sets({mcs}) {}
 
 bool Cluster::operator==(const Cluster& other) const {
     // TODO: hmm? if i built the clusters correctly then just comparing the rep should be enough.
@@ -31,7 +31,7 @@ bool Cluster::operator<=(const MaximalConsistentSet& other) const {
     return representative <= other;
 }
 
-void Cluster::show_formulas() {
+void Cluster::show_formulas() const {
     std::cout << "{";
     bool first = true;
     for (const std::string& f : Cluster::formulas) {

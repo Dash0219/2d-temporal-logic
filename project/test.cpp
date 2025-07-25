@@ -336,7 +336,7 @@ public:
 */
 // make the graph 
 // formatted for: https://csacademy.com/app/graph_editor/
-void create_and_print_graph(Formula& fmla) {
+std::vector<std::vector<bool>> create_and_print_graph(Formula& fmla) {
     int size_i = fmla.irreflexives.size();
     int size_c = fmla.clusters.size();
     std::vector<std::vector<bool>> g(size_i + size_c, std::vector<bool>(size_i + size_c, false));
@@ -397,6 +397,8 @@ void create_and_print_graph(Formula& fmla) {
     }
 
     std::cout << std::string(32, '=') << "\n";
+
+    return g;
 }
 
 // use (F(p/\q)/\Pr) as the testcase
@@ -456,6 +458,19 @@ void print_memory_usage() {
     std::cout << "Max memory used: " << usage.ru_maxrss / 1024 << " MB" << "\n";
 }
 
+// TODO: maybe add graph as a field of Formula
+// void new_algorithm_test(Formula& fmla, std::vector<std::vector<bool>>& g) {
+//     for (int i = 0; i < fmla.irreflexives.size(); ++i) {
+//         if (!fmla.irreflexives[i].formulas.contains(fmla.content)) continue;
+
+//     }
+
+//     for (int i = 0; i < fmla.clusters.size(); ++i) {
+//         if (!fmla.clusters[i].formulas.contains(fmla.content)) continue;
+
+//     }
+// }
+
 int main() {
     std::vector<std::string> test_inputs = {
         // "~(p->p)",
@@ -469,8 +484,8 @@ int main() {
         // "~~~~Fp", 
         // "P(Fp\\/(Pp\\/p))",
         // "(Fp\\/(Pp\\/p))",
-        // "(p/\\F(q->Pp))",
-        "(F(p/\\q)/\\Pr)"
+        "(p/\\F(q->Pp))",
+        // "(F(p/\\q)/\\Pr)"
         // "(~F~p/\\p)"
         // "(Pp/\\~Fp)",
         // "(~Fp/\\~F~p)",
@@ -494,19 +509,35 @@ int main() {
             fmla.show_closure_set();
             // fmla.show_MCS();
             fmla.show_irreflexives();
-            fmla.show_clusters();
+            fmla.show_clusters(true);
         } else {
             std::cout << "is not a formula" << "\n";
             std::cout << std::string(32, '=') << "\n";
         }
 
         // debugging functions
-        create_and_print_graph(fmla);
+        std::vector<std::vector<bool>> g;
+        g = create_and_print_graph(fmla);
         // trace_test(fmla);
+        // new_algorithm_test(fmla, g);
         // print_memory_usage();
+
                 
         fmla.clear();
     }
 
     return 0;
 }
+
+
+/*
+draft paper:
+
+what is the number of distinct boundary maps?
+paper says it's O(exp(n))
+
+4 mcs * 4 trace * 2 cluster
+O(exp(n)) * O(exp(n)) * O(exp(n)) = O(exp(n))
+
+
+*/

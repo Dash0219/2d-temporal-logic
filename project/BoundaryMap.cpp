@@ -10,6 +10,7 @@ bool BoundaryMap::is_simple() {
 }
 
 bool BoundaryMap::is_open() {
+    // TODO: partially open counts right? this code below is for fully open ones
     return !l.has_value() && !r.has_value() && !t.has_value() && !b.has_value() 
         && !n.has_value() && !e.has_value() && !s.has_value() && !w.has_value() 
         && plus.has_value() && minus.has_value();
@@ -17,7 +18,7 @@ bool BoundaryMap::is_open() {
 }
 
 bool BoundaryMap::is_fabricated() {
-    // TODO: the main algorithm lmaofd
+    // TODO: the main algorithm lmao
     if (is_simple()) {
         return true;
     } else {

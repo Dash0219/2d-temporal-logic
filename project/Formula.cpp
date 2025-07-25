@@ -71,42 +71,32 @@ void Formula::show_irreflexives() {
     int idx = 0;
     std::cout << "irreflexives of " << content << ": " << irreflexives.size() << " elements\n";
     for (const MaximalConsistentSet& mcs : irreflexives) {
-        std::cout << std::to_string(idx++) << ": {";
-        bool first = true;
-        for (const std::string& f : mcs.formulas) {
-            if (!first) std::cout << ", ";
-            std::cout << f;
-            first = false;
-        }
-        std::cout << "}\n";
+        std::cout << std::to_string(idx++) << ": ";
+        mcs.show_formulas();
+        std::cout << "\n";
     }
     std::cout << std::string(32, '=') << "\n";
 }
 
-void Formula::show_clusters() {
+void Formula::show_clusters(bool show_all_mcs) {
     int idx = 0;
     std::cout << "clusters of " << content << ": " << clusters.size() << " elements\n";
     for (const Cluster& cluster : clusters) {
-        std::cout << std::to_string(idx++) << ": {";
-        bool first = true;
-        for (const std::string& f : cluster.formulas) {
-            if (!first) std::cout << ", ";
-            std::cout << f;
-            first = false;
+        int mcs_idx = 0;
+        if (show_all_mcs) {
+            for (const MaximalConsistentSet& mcs : cluster.sets) {
+                std::cout << std::to_string(idx) << "-" << std::to_string(mcs_idx++) << ": ";
+                mcs.show_formulas();
+            }
+            ++idx;
+        } else {
+            std::cout << std::to_string(idx++) << ": ";
+            cluster.show_formulas();
         }
-        std::cout << "}\n";
-
-        std::cout << "size: " << cluster.size << ", representative: {";
-        first = true;
-        for (const std::string& f : cluster.representative.formulas) {
-            if (!first) std::cout << ", ";
-            std::cout << f;
-            first = false;
-        }
-        std::cout << "}\n\n";
+        std::cout << "size: " << cluster.size << ", representative: ";
+        cluster.representative.show_formulas();
+        std::cout << "\n";
     }
-
-
     std::cout << std::string(32, '=') << "\n";
 }
 
@@ -223,6 +213,10 @@ void Formula::_get_mcs_from_valuations(std::vector<std::string>& props_and_temps
             ++cluster.size;
             for (std::string fmla : mcs.formulas)
                 cluster.formulas.insert(fmla);
+
+            // for debugging purposes: show all mcs in a cluster
+            cluster.sets.push_back(mcs);
+
             merged = true;
             break;
         }
@@ -233,6 +227,9 @@ void Formula::_get_mcs_from_valuations(std::vector<std::string>& props_and_temps
             // create a new singleton cluster if the mcs is reflexive
             Cluster new_cluster(mcs);
             clusters.push_back(new_cluster);
+
+            // for debugging purposes: show all mcs in a cluster
+            new_cluster.sets.push_back(mcs);
         } else {
             irreflexives.push_back(mcs);
         }

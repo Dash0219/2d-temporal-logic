@@ -30,7 +30,7 @@ public:
     void show_closure_set();
     void show_MCS();
     void show_irreflexives();
-    void show_clusters();
+    void show_clusters(bool show_all_mcs = false);
 
     ~Formula();
 private:

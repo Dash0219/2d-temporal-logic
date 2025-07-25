@@ -40,7 +40,7 @@ bool MaximalConsistentSet::operator<=(const Cluster& other) const {
     return *this <= other.representative;
 }
 
-void MaximalConsistentSet::show_formulas() {
+void MaximalConsistentSet::show_formulas() const {
     std::cout << "{";
     bool first = true;
     for (const std::string& f : MaximalConsistentSet::formulas) {
