@@ -15,6 +15,14 @@ bool Trace::operator==(const Trace& other) const {
     return true;
 }
 
+bool Trace::contains_formula(std::string& str) {
+    for (auto& elem : sequence)
+        if (std::holds_alternative<Cluster>(elem) && std::get<Cluster>(elem).formulas.contains(str)
+            || std::holds_alternative<MaximalConsistentSet>(elem) && std::get<MaximalConsistentSet>(elem).formulas.contains(str))
+            return true;
+    return false;
+}
+
 bool Trace::push_back(Element elem) {
     if (sequence.size() == 0) {
         sequence.push_back(elem);

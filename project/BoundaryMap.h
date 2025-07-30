@@ -3,9 +3,6 @@
 
 #include <optional>
 #include <vector>
-
-#include "MaximalConsistentSet.h"
-#include "Cluster.h"
 #include "Trace.h"
 
 
@@ -21,7 +18,10 @@ public:
     bool is_simple();
     bool is_open();
     bool is_fabricated();
-    bool join(BoundaryMap& other, int direction);
-    bool limit(); // TODO: we have a different def than the paper
-    bool shuffle(std::vector<BoundaryMap>& others);
+    bool contains_formula(std::string& str);
+    bool has_internal_defects();
+    // bool join(BoundaryMap& other, int direction);
+    // bool limit(); // TODO: we have a different def than the paper
+    // bool shuffle(std::vector<BoundaryMap>& others);
+
 };

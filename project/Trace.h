@@ -2,8 +2,6 @@
 
 #include <variant>
 #include <vector>
-
-#include "MaximalConsistentSet.h"
 #include "Cluster.h"
 
 class Trace {
@@ -14,6 +12,7 @@ public:
 
     bool operator==(const Trace& other) const;
 
+    bool contains_formula(std::string& str);
     bool push_back(Element elem);
     bool join(Trace other);
     void show_sequence();

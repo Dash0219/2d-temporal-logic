@@ -1,8 +1,12 @@
 #include "Cluster.h"
-#include "MaximalConsistentSet.h"
+// #include "MaximalConsistentSet.h"
 
 Cluster::Cluster(MaximalConsistentSet mcs)
     : size(1), representative(mcs), formulas(mcs.formulas), sets({mcs}) {}
+
+// Cluster& Cluster::operator=(const Cluster& other) const {
+
+// }
 
 bool Cluster::operator==(const Cluster& other) const {
     // TODO: hmm? if i built the clusters correctly then just comparing the rep should be enough.

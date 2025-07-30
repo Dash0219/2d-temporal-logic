@@ -28,20 +28,42 @@ bool BoundaryMap::is_fabricated() {
     return false;
 }
 
-bool BoundaryMap::join(BoundaryMap& other, int direction) {
-    bool success = false;
-
-    if (direction == 0) { // N
-
-    } else if (direction == 1) { // E
-
-    } else if (direction == 2) { // S
-
-    } else if (direction == 3) { // W
-
-    } else { // invalid
-        return false;
-    }
-
-    return success;
+bool BoundaryMap::contains_formula(std::string& str) {
+    return (l.has_value()     && l.value().formulas.contains(str) 
+         || r.has_value()     && r.value().formulas.contains(str) 
+         || t.has_value()     && t.value().formulas.contains(str) 
+         || b.has_value()     && b.value().formulas.contains(str) 
+         || n.has_value()     && n.value().contains_formula(str)
+         || e.has_value()     && e.value().contains_formula(str)
+         || s.has_value()     && s.value().contains_formula(str)
+         || w.has_value()     && w.value().contains_formula(str)
+         || plus.has_value()  && plus.value().formulas.contains(str)
+         || minus.has_value() && minus.value().formulas.contains(str));
 }
+
+bool BoundaryMap::has_internal_defects() {
+    // go forward in time, collect defects, remove them if resolved?
+    // same the other way round
+    std::unordered_set<std::string> past_defects;
+    std::unordered_set<std::string> future_defects;
+
+    return true;
+}
+
+// bool BoundaryMap::join(BoundaryMap& other, int direction) {
+//     bool success = false;
+
+//     if (direction == 0) { // N
+
+//     } else if (direction == 1) { // E
+
+//     } else if (direction == 2) { // S
+
+//     } else if (direction == 3) { // W
+
+//     } else { // invalid
+//         return false;
+//     }
+
+//     return success;
+// }

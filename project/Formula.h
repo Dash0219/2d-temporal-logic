@@ -6,10 +6,8 @@
 #include <unordered_map>
 #include <vector>
 #include <stack>
-
 #include "ASTNode.h"
 #include "Cluster.h"
-#include "MaximalConsistentSet.h"
 
 class Formula {
 public:
