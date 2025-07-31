@@ -8,18 +8,20 @@
 
 class BoundaryMap {
 public:
+    bool contains_formula;
+
     std::optional<MaximalConsistentSet> l, r, t, b;
     std::optional<Trace> n, e, s, w;
     std::optional<Cluster> plus, minus;
-    
+
     BoundaryMap();
-    BoundaryMap(Cluster& cluster);
-    
+    BoundaryMap(Cluster& cluster, std::string& fmla);
+
     bool is_simple();
     bool is_open();
-    bool is_fabricated();
-    bool contains_formula(std::string& str);
-    bool has_internal_defects();
+    // bool is_fabricated();
+    // bool contains_formula(std::string& str);
+    bool has_internal_defects(); // 
     // bool join(BoundaryMap& other, int direction);
     // bool limit(); // TODO: we have a different def than the paper
     // bool shuffle(std::vector<BoundaryMap>& others);
