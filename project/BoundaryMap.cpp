@@ -1,20 +1,38 @@
 #include "BoundaryMap.h"
  
 
-BoundaryMap::BoundaryMap() {}
+BoundaryMap::BoundaryMap() : contains_formula(false) {}
 
 BoundaryMap::BoundaryMap(Cluster& cluster, std::string& fmla) : contains_formula(cluster.formulas.contains(fmla)), plus(cluster), minus(cluster) {}
 
+BoundaryMap::BoundaryMap(MaximalConsistentSet& irreflexive, std::string& fmla) : contains_formula(irreflexive.formulas.contains(fmla)), t(irreflexive), b(irreflexive) {}
+
 bool BoundaryMap::is_simple() {
-    return plus.has_value() && minus.has_value() && plus == minus;
+    return is_open() && plus == minus;
 }
 
+// {+, -}
 bool BoundaryMap::is_open() {
     // TODO: partially open counts right? this code below is for fully open ones
+    // or just write a is_closed() lol
     return !l.has_value() && !r.has_value() && !t.has_value() && !b.has_value() 
         && !n.has_value() && !e.has_value() && !s.has_value() && !w.has_value() 
         && plus.has_value() && minus.has_value();
-        // TODO: plus and minus cannot have defects, write a function to check that
+}
+
+// {l, r, t, b, n, e, s, w, +, -}
+bool BoundaryMap::is_closed() {
+    return l.has_value() && r.has_value() && t.has_value() && b.has_value() 
+        && n.has_value() && e.has_value() && s.has_value() && w.has_value() 
+        && plus.has_value() && minus.has_value();
+}
+
+// {t, b}, t == b
+bool BoundaryMap::is_one_point() {
+    return !l.has_value() && !r.has_value() && t.has_value() && b.has_value() 
+        && !n.has_value() && !e.has_value() && !s.has_value() && !w.has_value() 
+        && !plus.has_value() && !minus.has_value()
+        && t.value() == b.value();
 }
 
 // bool BoundaryMap::is_fabricated() {
@@ -41,14 +59,15 @@ bool BoundaryMap::is_open() {
 //          || minus.has_value() && minus.value().formulas.contains(str));
 // }
 
-bool BoundaryMap::has_internal_defects() {
-    // go forward in time, collect defects, remove them if resolved?
-    // same the other way round
-    std::unordered_set<std::string> past_defects;
-    std::unordered_set<std::string> future_defects;
+// TODO: i added something like this in BottomUpAlgorithm::join()
+// bool BoundaryMap::has_internal_defects() {
+//     // go forward in time, collect defects, remove them if resolved?
+//     // same the other way round
+//     std::unordered_set<std::string> past_defects;
+//     std::unordered_set<std::string> future_defects;
 
-    return true;
-}
+//     return true;
+// }
 
 // bool BoundaryMap::join(BoundaryMap& other, int direction) {
 //     bool success = false;

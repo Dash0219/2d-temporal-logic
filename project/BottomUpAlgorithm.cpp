@@ -1,14 +1,49 @@
 #include "BottomUpAlgorithm.h"
 
+
+// TODO: write a function vector<BM> -> bool
+// check if fmla is in a open, fabricated BM
 bool BottomUpAlgorithm::run(Formula& fmla) {
+    _add_one_point_boundary_maps(fmla);
     _add_simple_boundary_maps(fmla);
+    // if (func(fabricated_maps)) return true;
+
+    std::vector<BoundaryMap> new_maps;
+    bool changes = true;
+
+    while (changes) {
+        changes = false;
+
+        new_maps = close(fmla);
+        // changes |= !new_maps.empty();
+        // if (func(new_maps)) return true;
+        // new_maps.clear();
+
+        new_maps = join(fmla);
+        // changes |= !new_maps.empty();
+        // if (func(new_maps)) return true;
+        // new_maps.clear();
+
+        new_maps = shuffle(fmla);
+        // changes |= !new_maps.empty();
+        // if (func(new_maps)) return true;
+        // new_maps.clear();
+    }
+    
     return false;
 }
 
-// TODO: make this return a bool? like a base case even though im not recursing on anything
 void BottomUpAlgorithm::_add_simple_boundary_maps(Formula& fmla) {
     for (auto& cluster : fmla.clusters) {
         BoundaryMap new_bm(cluster, fmla.content);
+        fabricated_maps.push_back(new_bm);
+    }
+}
+
+// only used in shuffles i think
+void BottomUpAlgorithm::_add_one_point_boundary_maps(Formula& fmla) {
+    for (auto& irrflexive : fmla.irreflexives) {
+        BoundaryMap new_bm(irrflexive, fmla.content);
         fabricated_maps.push_back(new_bm);
     }
 }
@@ -189,9 +224,16 @@ std::optional<BoundaryMap> BottomUpAlgorithm::_join_create_new_boundary_map(Boun
         new_bm.minus = a.minus;
     } 
 
+    new_bm.contains_formula = a.contains_formula || b.contains_formula;
     return std::make_optional(new_bm);
 }
 
+// only checking:
+// n -> t (future)
+// e -> t (future)
+// s -> b (past)
+// w -> b (past)
+// everything else is "untouched" by the join
 bool BottomUpAlgorithm::_join_defects_passed_correctly(BoundaryMap& a) {
     std::unordered_set<std::string> n_future_defects;
     std::unordered_set<std::string> e_future_defects;
@@ -265,6 +307,7 @@ void BottomUpAlgorithm::_join_collect_defects_along_trace(Trace& trace, std::uno
     }
 }
 
+/*
 std::vector<BoundaryMap> BottomUpAlgorithm::shuffle(Formula& fmla) {
     std::vector<BoundaryMap> result;
     int n = fmla.clusters.size();
@@ -286,12 +329,15 @@ std::vector<BoundaryMap> BottomUpAlgorithm::shuffle(Formula& fmla) {
     return result;
 }
 
+// exclude boundary maps m, where m <= minus || plus <= m
 void BottomUpAlgorithm::_shuffle_guess_array(std::vector<BoundaryMap>& result, Cluster& plus, Cluster& minus, std::vector<BoundaryMap>& arr, int i, int max_arr_size) {
     if (i == max_arr_size) return;
 
     std::optional<BoundaryMap> new_bm = _shuffle_create_new_boundary_map(plus, minus, arr);
     if (new_bm.has_value()) result.push_back(new_bm.value());
 
+    // if (minus <= fabricated_maps[i].b.value() && fabricated_maps[i] <= plus) {
+    // }
     arr.push_back(fabricated_maps[i]);
     _shuffle_guess_array(result, plus, minus, arr, i + 1, max_arr_size);
     arr.pop_back();
@@ -317,4 +363,116 @@ std::optional<BoundaryMap> BottomUpAlgorithm::_shuffle_create_new_boundary_map(C
     new_bm.contains_formula = contains_formula;
 
     return std::make_optional(new_bm);
+}
+*/
+
+std::vector<BoundaryMap> BottomUpAlgorithm::shuffle(Formula& fmla) {
+    std::vector<BoundaryMap> result;
+    int n = fmla.clusters.size();
+    int m = fabricated_maps.size();
+
+    // guess a pair of clusters to be the plus and minus
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            // exclude clusters pairs in the wrong order
+            // also contains the case when i == j
+            if (fmla.clusters[j] <= fmla.clusters[i]) continue; 
+            
+            _shuffle_iterate_array(result, fmla.clusters[j], fmla.clusters[i]);
+        }
+    }
+    
+    return result;
+}
+
+void BottomUpAlgorithm::_shuffle_iterate_array(std::vector<BoundaryMap>& result, Cluster& plus, Cluster& minus) {
+    int m = fabricated_maps.size();
+    int i = 0;
+    bool found_map_containing_formula = false;
+    bool found_one_point_map = false;
+    bool found_shuffle = false;
+    std::unordered_set<std::string> minus_future_defects;
+    std::unordered_set<std::string> plus_past_defects;
+    
+    for (auto& fmla : plus.formulas)
+        if (fmla[0] == 'P') plus_past_defects.insert(fmla);
+    for (auto& fmla : minus.formulas)
+        if (fmla[0] == 'F') minus_future_defects.insert(fmla);
+    
+    while (i < m) {
+        BoundaryMap& current = fabricated_maps[i];
+        if (!current.is_closed()) continue;
+        
+        if (minus <= current.b.value() && current.t.value() <= plus) {
+            if (current.is_one_point()) found_one_point_map = true;
+            found_map_containing_formula |= current.contains_formula;
+            
+            for (auto& fmla : current.t.value().formulas) {
+                if (fmla[0] == 'P') {
+                    if (plus_past_defects.contains(fmla)) plus_past_defects.erase(fmla);
+                } else {
+                    std::string past_fmla = std::string(1, 'P') + fmla;
+                    if (plus_past_defects.contains(past_fmla)) plus_past_defects.erase(past_fmla);
+                }
+            }
+
+            for (auto& fmla : current.b.value().formulas) {
+                if (fmla[0] == 'F') {
+                    if (minus_future_defects.contains(fmla)) minus_future_defects.erase(fmla);
+                } else {
+                    std::string future_fmla = std::string(1, 'F') + fmla;
+                    if (minus_future_defects.contains(future_fmla)) minus_future_defects.erase(future_fmla);
+                }
+            }
+        }
+
+        ++i;
+        
+        if (plus_past_defects.empty() && minus_future_defects.empty()) {
+            found_shuffle = true;
+            break;
+        }
+    }
+
+    if (found_shuffle) {
+        if (found_map_containing_formula) {
+            result.push_back(_shuffle_create_new_boundary_map(plus, minus, true));
+            return;
+        } else {
+            result.push_back(_shuffle_create_new_boundary_map(plus, minus, false));
+        }
+    } else {
+        return;
+    }
+
+    while (i < m) {
+        BoundaryMap& current = fabricated_maps[i];
+        if (!current.is_closed()) continue;
+        if (minus <= current.b.value() && current.t.value() <= plus) {
+            found_map_containing_formula |= current.contains_formula;
+        }
+
+        ++i;
+
+        if (found_map_containing_formula) break;
+    }
+
+    if (found_map_containing_formula) {
+        result.push_back(_shuffle_create_new_boundary_map(plus, minus, true));
+    }
+}
+
+BoundaryMap BottomUpAlgorithm::_shuffle_create_new_boundary_map(Cluster& plus, Cluster& minus, bool contains_formula) {
+    BoundaryMap new_bm;
+    new_bm.plus = plus;
+    new_bm.minus = minus;
+    new_bm.contains_formula = contains_formula;
+    return new_bm;
+}
+
+// corner is added IFF both adj edges are added
+std::vector<BoundaryMap> BottomUpAlgorithm::close(Formula& fmla) {
+    std::vector<BoundaryMap> result;
+
+    return result;
 }
