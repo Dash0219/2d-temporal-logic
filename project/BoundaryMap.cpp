@@ -7,14 +7,20 @@ BoundaryMap::BoundaryMap(Cluster& cluster, std::string& fmla) : contains_formula
 
 BoundaryMap::BoundaryMap(MaximalConsistentSet& irreflexive, std::string& fmla) : contains_formula(irreflexive.formulas.contains(fmla)), t(irreflexive), b(irreflexive) {}
 
+bool BoundaryMap::operator==(const BoundaryMap& other) const {
+    return contains_formula == other.contains_formula &&
+           l == other.l && r == other.r && t == other.t && b == other.b &&
+           n == other.n && e == other.e && s == other.s && w == other.w &&
+           plus == other.plus && minus == other.minus;
+}
+
+// {+, -}, + == -
 bool BoundaryMap::is_simple() {
     return is_open() && plus == minus;
 }
 
 // {+, -}
 bool BoundaryMap::is_open() {
-    // TODO: partially open counts right? this code below is for fully open ones
-    // or just write a is_closed() lol
     return !l.has_value() && !r.has_value() && !t.has_value() && !b.has_value() 
         && !n.has_value() && !e.has_value() && !s.has_value() && !w.has_value() 
         && plus.has_value() && minus.has_value();

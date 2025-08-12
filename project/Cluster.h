@@ -8,7 +8,7 @@
 class Cluster {
 public:
     Cluster(MaximalConsistentSet mcs);
-    
+
     int size;
     // UNION of all formulas in each mcs in the cluster
     std::unordered_set<std::string> formulas;
@@ -24,3 +24,13 @@ public:
 
     void show_formulas() const;
 };
+
+
+namespace std {
+    template <>
+    struct hash<Cluster> {
+        size_t operator()(const Cluster& c) const noexcept {
+            return std::hash<MaximalConsistentSet>{}(c.representative);
+        }
+    };
+}

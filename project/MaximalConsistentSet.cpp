@@ -6,9 +6,10 @@ MaximalConsistentSet::MaximalConsistentSet(const std::unordered_set<std::string>
     : closure_set(closure) {}
 
 bool MaximalConsistentSet::operator==(const MaximalConsistentSet& other) const {
-    for (auto& fmla : formulas)       if (!other.formulas.contains(fmla)) return false;
-    for (auto& fmla : other.formulas) if (!formulas.contains(fmla))       return false;
-    return true;
+    // for (auto& fmla : formulas)       if (!other.formulas.contains(fmla)) return false;
+    // for (auto& fmla : other.formulas) if (!formulas.contains(fmla))       return false;
+    // return true;
+    return formulas == other.formulas;
 }
 
 bool MaximalConsistentSet::operator<=(const MaximalConsistentSet& other) const {

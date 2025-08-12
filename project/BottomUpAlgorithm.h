@@ -1,17 +1,14 @@
 #pragma once
 
 
-#include <optional>
-#include <queue>
-#include <vector>
 #include "BoundaryMap.h"
 #include "Formula.h"
 
 class BottomUpAlgorithm {
 public:
-    std::queue<BoundaryMap> work_set;
     // std::vector<BoundaryMap> one_point_maps;
     std::vector<BoundaryMap> fabricated_maps;
+    // std::unordered_set<BoundaryMap> fabricated_maps;
 
     bool run(Formula& fmla);
 
@@ -31,9 +28,12 @@ private:
     // std::optional<BoundaryMap> _shuffle_create_new_boundary_map(Cluster& plus, Cluster& minus, std::vector<BoundaryMap>& arr);
 
     std::vector<BoundaryMap> shuffle(Formula& fmla);
-    void _shuffle_iterate_array(std::vector<BoundaryMap>& result, Cluster& plus, Cluster& minus);
+    std::optional<BoundaryMap> _shuffle_find_shuffle(std::vector<BoundaryMap>& result, Cluster& plus, Cluster& minus);
     BoundaryMap _shuffle_create_new_boundary_map(Cluster& plus, Cluster& minus, bool contains_formula);
 
     std::vector<BoundaryMap> close(Formula& fmla);
+    void _close_find_clusters(Formula& fmla, BoundaryMap& bm, int config);
+    std::vector<BoundaryMap> _close_find_clusters_with_direction(Formula& fmla, BoundaryMap& bm, int direction);
+    
     
 };

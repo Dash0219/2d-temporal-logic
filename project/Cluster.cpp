@@ -4,26 +4,8 @@
 Cluster::Cluster(MaximalConsistentSet mcs)
     : size(1), representative(mcs), formulas(mcs.formulas), sets({mcs}) {}
 
-// Cluster& Cluster::operator=(const Cluster& other) const {
-
-// }
-
+// if i built the clusters correctly then just comparing the rep should be enough.
 bool Cluster::operator==(const Cluster& other) const {
-    // TODO: hmm? if i built the clusters correctly then just comparing the rep should be enough.
-    // depends on if i change the implementation of the ND algo and how i "guess" things
-
-    // if (formulas.size() != other.formulas.size()) return false;
-
-    // for (auto& fmla : formulas)
-    //     if (!other.formulas.contains(fmla)) 
-    //         return false;
-
-    // for (auto& fmla : other.formulas)
-    //     if (!formulas.contains(fmla)) 
-    //         return false;
-        
-    // return true;
-
     return representative <= other.representative;
 }
 

@@ -378,88 +378,63 @@ std::vector<BoundaryMap> BottomUpAlgorithm::shuffle(Formula& fmla) {
             // also contains the case when i == j
             if (fmla.clusters[j] <= fmla.clusters[i]) continue; 
             
-            _shuffle_iterate_array(result, fmla.clusters[j], fmla.clusters[i]);
+            std::optional<BoundaryMap> new_bm = _shuffle_find_shuffle(result, fmla.clusters[j], fmla.clusters[i]);
+            if (new_bm.has_value()) result.push_back(new_bm.value());
         }
     }
     
     return result;
 }
 
-void BottomUpAlgorithm::_shuffle_iterate_array(std::vector<BoundaryMap>& result, Cluster& plus, Cluster& minus) {
+std::optional<BoundaryMap> BottomUpAlgorithm::_shuffle_find_shuffle(std::vector<BoundaryMap>& result, Cluster& plus, Cluster& minus) {
     int m = fabricated_maps.size();
     int i = 0;
-    bool found_map_containing_formula = false;
     bool found_one_point_map = false;
+    bool found_formula = false;
     bool found_shuffle = false;
     std::unordered_set<std::string> minus_future_defects;
     std::unordered_set<std::string> plus_past_defects;
     
+    // find defects
     for (auto& fmla : plus.formulas)
         if (fmla[0] == 'P') plus_past_defects.insert(fmla);
     for (auto& fmla : minus.formulas)
         if (fmla[0] == 'F') minus_future_defects.insert(fmla);
+
+    for (auto& current : fabricated_maps) {
+        // BM cant be used
+        if (!current.is_closed() || !(minus <= current.b.value()) || !(current.t.value() <= plus)) continue;
+
+        if (current.is_one_point()) found_one_point_map = true;
+        found_formula |= current.contains_formula;
+        
+        // no need to search further
+        if (found_shuffle && found_formula) break;
+        // no more defects to resolve
+        if (found_shuffle) continue;
+        // havent found a shuffle, resolve remaining defects
+        for (auto& fmla : current.t.value().formulas) {
+            if (fmla[0] == 'P') {
+                if (plus_past_defects.contains(fmla)) plus_past_defects.erase(fmla);
+            } else {
+                std::string past_fmla = std::string(1, 'P') + fmla;
+                if (plus_past_defects.contains(past_fmla)) plus_past_defects.erase(past_fmla);
+            }
+        }
+        for (auto& fmla : current.b.value().formulas) {
+            if (fmla[0] == 'F') {
+                if (minus_future_defects.contains(fmla)) minus_future_defects.erase(fmla);
+            } else {
+                std::string future_fmla = std::string(1, 'F') + fmla;
+                if (minus_future_defects.contains(future_fmla)) minus_future_defects.erase(future_fmla);
+            }
+        }
+
+        if (plus_past_defects.empty() && minus_future_defects.empty() && found_one_point_map) found_shuffle = true;
+        if (found_shuffle && found_formula) break;
+    }
     
-    while (i < m) {
-        BoundaryMap& current = fabricated_maps[i];
-        if (!current.is_closed()) continue;
-        
-        if (minus <= current.b.value() && current.t.value() <= plus) {
-            if (current.is_one_point()) found_one_point_map = true;
-            found_map_containing_formula |= current.contains_formula;
-            
-            for (auto& fmla : current.t.value().formulas) {
-                if (fmla[0] == 'P') {
-                    if (plus_past_defects.contains(fmla)) plus_past_defects.erase(fmla);
-                } else {
-                    std::string past_fmla = std::string(1, 'P') + fmla;
-                    if (plus_past_defects.contains(past_fmla)) plus_past_defects.erase(past_fmla);
-                }
-            }
-
-            for (auto& fmla : current.b.value().formulas) {
-                if (fmla[0] == 'F') {
-                    if (minus_future_defects.contains(fmla)) minus_future_defects.erase(fmla);
-                } else {
-                    std::string future_fmla = std::string(1, 'F') + fmla;
-                    if (minus_future_defects.contains(future_fmla)) minus_future_defects.erase(future_fmla);
-                }
-            }
-        }
-
-        ++i;
-        
-        if (plus_past_defects.empty() && minus_future_defects.empty()) {
-            found_shuffle = true;
-            break;
-        }
-    }
-
-    if (found_shuffle) {
-        if (found_map_containing_formula) {
-            result.push_back(_shuffle_create_new_boundary_map(plus, minus, true));
-            return;
-        } else {
-            result.push_back(_shuffle_create_new_boundary_map(plus, minus, false));
-        }
-    } else {
-        return;
-    }
-
-    while (i < m) {
-        BoundaryMap& current = fabricated_maps[i];
-        if (!current.is_closed()) continue;
-        if (minus <= current.b.value() && current.t.value() <= plus) {
-            found_map_containing_formula |= current.contains_formula;
-        }
-
-        ++i;
-
-        if (found_map_containing_formula) break;
-    }
-
-    if (found_map_containing_formula) {
-        result.push_back(_shuffle_create_new_boundary_map(plus, minus, true));
-    }
+    return (found_shuffle) ? std::make_optional(_shuffle_create_new_boundary_map(plus, minus, found_formula)) : std::nullopt;
 }
 
 BoundaryMap BottomUpAlgorithm::_shuffle_create_new_boundary_map(Cluster& plus, Cluster& minus, bool contains_formula) {
@@ -470,9 +445,54 @@ BoundaryMap BottomUpAlgorithm::_shuffle_create_new_boundary_map(Cluster& plus, C
     return new_bm;
 }
 
+// TODO: how to know which open maps ive closed before, the closure will always generate the same maps
+// only need to hash the + - clusters and bool
+// if i can figure out how to hash the whole map then even better
+
 // corner is added IFF both adj edges are added
+// possible configurations:
+//    2^4 over edges, then fill in corners
 std::vector<BoundaryMap> BottomUpAlgorithm::close(Formula& fmla) {
     std::vector<BoundaryMap> result;
 
+    for (auto& bm : fabricated_maps) {
+        // ignore particaly closed or fully closed ones
+        if (!bm.is_open()) continue;
+        
+        // TODO: _close_find_clusters(BoundaryMap&, int) -> vector<BoundaryMap>
+        // ocnfig: int [0-15] 
+        for (int config = 0; config < 16; ++config) {
+            _close_find_clusters(fmla, bm, config);
+
+        }
+    }
+
     return result;
+}
+
+void BottomUpAlgorithm::_close_find_clusters(Formula& fmla, BoundaryMap& bm, int config) {
+
+    if (config & 0b0001) { // N
+        _close_find_clusters_with_direction(fmla, bm, 0);
+    }
+
+    if (config & 0b0010) { // E
+        _close_find_clusters_with_direction(fmla, bm, 1);    
+    }
+
+    if (config & 0b0100) { // S
+        
+    }
+
+    if (config & 0b1000) { // W
+        
+    }
+
+
+    // return new_maps;
+}
+
+std::vector<BoundaryMap> BottomUpAlgorithm::_close_find_clusters_with_direction(Formula& fmla, BoundaryMap& bm, int direction) {
+    std::vector<BoundaryMap> new_maps;
+    return new_maps;
 }

@@ -1,27 +1,37 @@
 #include "Trace.h"
 
+using Element = std::variant<MaximalConsistentSet, Cluster>;
+
+
+Trace::Trace() {};
+
+Trace::Trace(Cluster& cluster) {
+    sequence.emplace_back(cluster);
+}
+
 bool Trace::operator==(const Trace& other) const {
-    if (sequence.size() != other.sequence.size()) return false;
+    // if (sequence.size() != other.sequence.size()) return false;
 
-    int n = sequence.size();
-    for (int i = 0; i < n; ++i) {
-        bool is_cluster_1 = std::holds_alternative<Cluster>(sequence[i]);
-        bool is_cluster_2 = std::holds_alternative<Cluster>(other.sequence[i]);
+    // int n = sequence.size();
+    // for (int i = 0; i < n; ++i) {
+    //     bool is_cluster_1 = std::holds_alternative<Cluster>(sequence[i]);
+    //     bool is_cluster_2 = std::holds_alternative<Cluster>(other.sequence[i]);
 
-        if (is_cluster_1 ^ is_cluster_2) return false;
-        if (sequence[i] != other.sequence[i]) return false;
-    }
+    //     if (is_cluster_1 ^ is_cluster_2) return false;
+    //     if (sequence[i] != other.sequence[i]) return false;
+    // }
 
-    return true;
+    // return true;
+    return sequence == other.sequence;
 }
 
-bool Trace::contains_formula(std::string& str) {
-    for (auto& elem : sequence)
-        if (std::holds_alternative<Cluster>(elem) && std::get<Cluster>(elem).formulas.contains(str)
-            || std::holds_alternative<MaximalConsistentSet>(elem) && std::get<MaximalConsistentSet>(elem).formulas.contains(str))
-            return true;
-    return false;
-}
+// bool Trace::contains_formula(std::string& str) {
+//     for (auto& elem : sequence)
+//         if (std::holds_alternative<Cluster>(elem) && std::get<Cluster>(elem).formulas.contains(str)
+//             || std::holds_alternative<MaximalConsistentSet>(elem) && std::get<MaximalConsistentSet>(elem).formulas.contains(str))
+//             return true;
+//     return false;
+// }
 
 bool Trace::push_back(Element elem) {
     if (sequence.size() == 0) {
