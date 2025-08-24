@@ -13,26 +13,58 @@ bool MaximalConsistentSet::operator==(const MaximalConsistentSet& other) const {
 }
 
 bool MaximalConsistentSet::operator<=(const MaximalConsistentSet& other) const {
-    for (const std::string fmla : closure_set) {
+    for (const std::string& fmla : closure_set) {
+        // if (!_compare_identity(other, fmla)) {
+        //     return false;
+        // } else if (fmla[0] == '~' && fmla.size() > 2) {
+        //     std::string fmla_id = std::string(1, '~');
+        //     if (fmla[1] == 'F') {
+        //         // fmla_id =    
+        //     } else if (fmla[1] == 'P') {
+
+        //     } else if (fmla[1] == 'G') {
+
+        //     } else if (fmla[1] == 'H') {
+
+        //     }
+        // }
+
+
+
+
+
+
+
+
+
+        std::string phi = fmla.substr(1);
+
         if (fmla[0] == 'F') {
-            std::string phi = fmla.substr(1);
             if (other.formulas.contains(phi) && !formulas.contains(fmla) ||
                 other.formulas.contains(fmla) && !formulas.contains(fmla)) return false;
         } else if (fmla[0] == 'P') {
-            std::string phi = fmla.substr(1);
             if (formulas.contains(phi) && !other.formulas.contains(fmla) ||
                 formulas.contains(fmla) && !other.formulas.contains(fmla)) return false;
-        } else
-        // TODO: debug these are wrong i think
-        if (fmla[0] == 'G') {
-            std::string phi = fmla.substr(1);
+        } else if (fmla[0] == 'G') {
             if (formulas.contains(fmla) && !other.formulas.contains(phi) ||
                 formulas.contains(fmla) && !other.formulas.contains(fmla)) return false;
         } else if (fmla[0] == 'H') {
-            std::string phi = fmla.substr(1);
             if (other.formulas.contains(fmla) && !formulas.contains(phi) ||
                 other.formulas.contains(fmla) && !formulas.contains(fmla)) return false;
-        }
+        } 
+
+        // else if (fmla[0] == '~' && fmla.size() > 2) {
+        //     std::string negated_phi = std::string(1, '~') + fmla.substr(2); 
+        //     if (fmla[1] == 'F') {
+                
+        //     } else if (fmla[1] == 'P') {
+
+        //     } else if (fmla[1] == 'G') {
+
+        //     } else if (fmla[1] == 'H') {
+
+        //     }
+        // }
     }
     return true;
 }
@@ -50,4 +82,24 @@ void MaximalConsistentSet::show_formulas() const {
         first = false;
     }
     std::cout << "}\n";
+}
+
+bool MaximalConsistentSet::_compare_identity(const MaximalConsistentSet& other, const std::string& fmla) const {
+    std::string phi = fmla.substr(1);
+
+    if (fmla[0] == 'F') {
+        if (other.formulas.contains(phi) && !formulas.contains(fmla) ||
+            other.formulas.contains(fmla) && !formulas.contains(fmla)) return false;
+    } else if (fmla[0] == 'P') {
+        if (formulas.contains(phi) && !other.formulas.contains(fmla) ||
+            formulas.contains(fmla) && !other.formulas.contains(fmla)) return false;
+    } else if (fmla[0] == 'G') {
+        if (formulas.contains(fmla) && !other.formulas.contains(phi) ||
+            formulas.contains(fmla) && !other.formulas.contains(fmla)) return false;
+    } else if (fmla[0] == 'H') {
+        if (other.formulas.contains(fmla) && !formulas.contains(phi) ||
+            other.formulas.contains(fmla) && !formulas.contains(fmla)) return false;
+    }
+
+    return true;
 }

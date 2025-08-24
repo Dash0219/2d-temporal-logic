@@ -9,7 +9,6 @@
 class BoundaryMap {
 public:
     bool contains_formula;
-
     std::optional<MaximalConsistentSet> l, r, t, b;
     std::optional<Trace> n, e, s, w;
     std::optional<Cluster> plus, minus;
@@ -20,10 +19,10 @@ public:
 
     bool operator==(const BoundaryMap& other) const;
 
-    bool is_simple();
-    bool is_open();
-    bool is_closed();
-    bool is_one_point();
+    bool is_simple() const;
+    bool is_open() const;
+    bool is_closed() const;
+    bool is_one_point() const;
     // bool is_fabricated();
     // bool contains_formula(std::string& str);
     // bool has_internal_defects();

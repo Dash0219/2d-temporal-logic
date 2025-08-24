@@ -14,7 +14,6 @@ public:
     std::unordered_set<std::string> formulas;
     // one mcs to make <= comparisons
     MaximalConsistentSet representative;
-    
     // for debugging purposes: show all mcs in a cluster
     std::vector<MaximalConsistentSet> sets;
     
@@ -26,11 +25,25 @@ public:
 };
 
 
+// namespace std {
+//     template <>
+//     struct hash<Cluster> {
+//         size_t operator()(const Cluster& c) const noexcept {
+//             return std::hash<MaximalConsistentSet>{}(c.representative);
+//         }
+//     };
+// }
+
 namespace std {
     template <>
     struct hash<Cluster> {
         size_t operator()(const Cluster& c) const noexcept {
-            return std::hash<MaximalConsistentSet>{}(c.representative);
+            size_t h = 0;
+            std::hash<std::string> str_hash;
+            for (const auto& f : c.formulas) {
+                h ^= str_hash(f) + 0x9e3779b9 + (h << 6) + (h >> 2);
+            }
+            return h;
         }
     };
 }

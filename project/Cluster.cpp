@@ -4,9 +4,9 @@
 Cluster::Cluster(MaximalConsistentSet mcs)
     : size(1), representative(mcs), formulas(mcs.formulas), sets({mcs}) {}
 
-// if i built the clusters correctly then just comparing the rep should be enough.
+// if i built the clusters correctly then just comparing the reps should be enough.
 bool Cluster::operator==(const Cluster& other) const {
-    return representative <= other.representative;
+    return representative <= other.representative && other.representative <= representative;
 }
 
 bool Cluster::operator<=(const Cluster& other) const {

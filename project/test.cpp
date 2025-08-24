@@ -11,6 +11,7 @@
 #include "MaximalConsistentSet.h"
 #include "Cluster.h"
 #include "Trace.h"
+#include "BottomUpAlgorithm.h"
 
 
 /*
@@ -336,7 +337,7 @@ public:
 */
 // make the graph 
 // formatted for: https://csacademy.com/app/graph_editor/
-std::vector<std::vector<bool>> create_and_print_graph(Formula& fmla) {
+std::vector<std::vector<bool>> create_and_print_graph(Formula& fmla, bool print_non_reduced_graph) {
     int size_i = fmla.irreflexives.size();
     int size_c = fmla.clusters.size();
     std::vector<std::vector<bool>> g(size_i + size_c, std::vector<bool>(size_i + size_c, false));
@@ -344,13 +345,13 @@ std::vector<std::vector<bool>> create_and_print_graph(Formula& fmla) {
         for (int j = 0; j < size_i; ++j) {
             if (fmla.irreflexives[i] <= fmla.irreflexives[j]) {
                 g[i][j] = true;
-                std::cout << "i" << i << " " << "i" << j << "\n";
+                if (print_non_reduced_graph) std::cout << "i" << i << " " << "i" << j << "\n";
             }
         }
         for (int j = 0; j < size_c; ++j) {
             if (fmla.irreflexives[i] <= fmla.clusters[j].representative) {
                 g[i][size_i + j] = true;
-                std::cout << "i" << i << " " << "c" << j << "\n";
+                if (print_non_reduced_graph) std::cout << "i" << i << " " << "c" << j << "\n";
             }
         }
     }
@@ -358,17 +359,17 @@ std::vector<std::vector<bool>> create_and_print_graph(Formula& fmla) {
         for (int j = 0; j < size_i; ++j) {
             if (fmla.clusters[i].representative <= fmla.irreflexives[j]) {
                 g[size_i + i][j] = true;
-                std::cout << "c" << i << " " << "i" << j << "\n";
+                if (print_non_reduced_graph) std::cout << "c" << i << " " << "i" << j << "\n";
             }
         }
         for (int j = 0; j < size_c; ++j) {
             if (fmla.clusters[i].representative <= fmla.clusters[j].representative) {
                 g[size_i + i][size_i + j] = true;
-                std::cout << "c" << i << " " << "c" << j << "\n";
+                if (print_non_reduced_graph) std::cout << "c" << i << " " << "c" << j << "\n";
             }
         }
     }
-    std::cout << std::string(32, '=') << "\n";
+    if (print_non_reduced_graph) std::cout << std::string(32, '=') << "\n";
 
     // trasitive reduction
     for (int i = 0; i < size_i + size_c; ++i) 
@@ -478,20 +479,25 @@ int main() {
         // "(p\\/r)",
         // "~((p->p)->(q->q))",
         // "(q/\\~(q/\\(p/\\q)))",
-        // "~((p0->F~(p1/\\p2))->(Pq->Pq))",
+
+        // "~((p0->F~(p1/\\p2))->(Pp3->Pp3))",
+
+        // "((p0->F~(p1/\\p2))->(Pq->Pq))",
         // "(~((p0->~(p1/\\p2))->(p3->p4))/\\~((p5->~(p6/\\p7))->(p8->p9)))",
         // "(~((p0->~(p1/\\p2))->(p3->p4))/\\~((p5->~(p6/\\p7))->(p8->Pp9)))",
         // "~~~~Fp", 
         // "P(Fp\\/(Pp\\/p))",
         // "(Fp\\/(Pp\\/p))",
-        "(p/\\F(q->Pp))",
+        // "(p/\\F(q->Pp))",
+        // "(p/\\~p)",
         // "(F(p/\\q)/\\Pr)"
         // "(~F~p/\\p)"
         // "(Pp/\\~Fp)",
         // "(~Fp/\\~F~p)",
         // "(Fp/\\Gp)",
-        // "PPPPp",
+        "Pp",
         // "PPPPPPPPPp", // 10
+        // "PPPPPPPPPPPPPPp", // 15
         // "HHHHHHHHHHHHHHHHHHHp", // 20
     };
 
@@ -506,10 +512,16 @@ int main() {
             // fmla.show_propositions();
             // fmla.show_temporal_formulas();
 
-            fmla.show_closure_set();
-            // fmla.show_MCS();
+            // fmla.show_closure_set();
             fmla.show_irreflexives();
             fmla.show_clusters(true);
+
+            // BottomUpAlgorithm algo;
+            // if (algo.run(fmla, true)) {
+            //     std::cout << "SAT\n";
+            // } else {
+            //     std::cout << "not SAT\n";
+            // }
         } else {
             std::cout << "is not a formula" << "\n";
             std::cout << std::string(32, '=') << "\n";
@@ -517,12 +529,12 @@ int main() {
 
         // debugging functions
         std::vector<std::vector<bool>> g;
-        g = create_and_print_graph(fmla);
+        g = create_and_print_graph(fmla, false);
         // trace_test(fmla);
         // new_algorithm_test(fmla, g);
         // print_memory_usage();
+        // std::cout << (fmla.irreflexives[0] <= fmla.clusters[0]) << " " << (fmla.irreflexives[0] <= fmla.clusters[1]) << "\n";
 
-                
         fmla.clear();
     }
 

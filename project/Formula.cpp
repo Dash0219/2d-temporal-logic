@@ -1,11 +1,16 @@
 #include "Formula.h"
 
 
+using Element = std::variant<MaximalConsistentSet, Cluster>;
+
 bool Formula::setup_formula(std::string& input) {
     content = input;
     if (!parse_and_build_tree(input, root)) return false;
     generate_closure_set();
     generate_MCS_and_clusters();
+
+    build_graphs();
+    // debug_graphs();
     return true;
 }
 
@@ -175,6 +180,15 @@ void Formula::generate_closure_set() {
     for (const std::string& fmla : closure_set)
         new_members.insert("~" + fmla);
     closure_set.insert(new_members.begin(), new_members.end());
+
+    // std::unordered_set<std::string> copy(closure_set);
+    // for (const std::string& fmla : copy) {
+    //     if (fmla[0] == '~' && fmla.size() > 2) {
+    //         closure_set.erase(fmla);
+    //         std::string transformed_fmla = _move_in_negations(fmla);
+    //         closure_set.insert(transformed_fmla);
+    //     }
+    // }
 }
 
 void Formula::generate_MCS_and_clusters() {
@@ -288,4 +302,101 @@ void Formula::clear_node(ASTNode*& node) {
     clear_node(node->right);
     delete node;
     node = nullptr;
+}
+
+void Formula::build_graphs() {
+    std::vector<Element> all;
+    for (auto& i : irreflexives) all.emplace_back(Element{i});
+    for (auto& c : clusters) all.emplace_back(Element{c});
+
+    for (auto& elem : all) {
+        std::cout << "node type: ";
+        if (std::holds_alternative<Cluster>(elem)) {
+            std::cout << "cluster\n";
+            std::get<Cluster>(elem).show_formulas();
+        } else {
+            std::cout << "mcs\n";
+            std::get<MaximalConsistentSet>(elem).show_formulas();
+        }
+
+        
+
+        for (auto& other : all) {
+            if (elem == other) continue;
+
+            if (elem <= other) {
+                suc[elem].emplace_back(other);
+                std::cout << "found suc: ";
+                if (std::holds_alternative<Cluster>(other)) {
+                    std::cout << "cluster\n";
+                } else {
+                    std::cout << "mcs\n";
+                }
+            }
+
+            if (other <= elem) {
+                pre[elem].emplace_back(other);
+                std::cout << "found pre: ";
+                if (std::holds_alternative<Cluster>(other)) {
+                    std::cout << "cluster\n";
+                } else {
+                    std::cout << "mcs\n";
+                }
+            }
+        }
+        std::cout << "\n";
+    }
+
+    // for (auto& irreflexive : irreflexives) {
+    //     for (auto& other_irreflexive : irreflexives) {
+    //         if (irreflexive == other_irreflexive) continue;
+    //         if (irreflexive <= other_irreflexive) suc[Element{irreflexive}].push_back(Element{other_irreflexive});
+    //         if (other_irreflexive <= irreflexive) pre[Element{irreflexive}].push_back(Element{other_irreflexive});
+    //     }
+    //     for (auto& other_cluster : clusters) {
+    //         if (irreflexive <= other_cluster) suc[Element{irreflexive}].push_back(Element{other_cluster});
+    //         if (other_cluster <= irreflexive) pre[Element{irreflexive}].push_back(Element{other_cluster});
+    //     }
+    // }
+
+    // for (auto& cluster : clusters) {
+    //     for (auto& other_irreflexive : irreflexives) {
+    //         if (cluster <= other_irreflexive) suc[Element{cluster}].push_back(Element{other_irreflexive});
+    //         if (other_irreflexive <= cluster) pre[Element{cluster}].push_back(Element{other_irreflexive});
+    //     }
+    //     for (auto& other_cluster : clusters) {
+    //         // dont include itself as a pre or suc
+    //         if (cluster == other_cluster) continue;
+    //         if (cluster <= other_cluster) suc[Element{cluster}].push_back(Element{other_cluster});
+    //         if (other_cluster <= cluster) pre[Element{cluster}].push_back(Element{other_cluster});
+    //     }
+    // }
+
+}
+
+void Formula::debug_graphs() {
+    for (auto& kv : pre) {
+        std::cout << "node type: ";
+        if (std::holds_alternative<Cluster>(kv.first)) {
+            std::cout << "cluster\n";
+        } else if (std::holds_alternative<MaximalConsistentSet>(kv.first)) {
+            std::cout << "mcs\n";
+        }
+        for (auto& nodes : kv.second) {
+            if (std::holds_alternative<Cluster>(kv.first)) {
+                std::cout << "cluster ";
+            } else if (std::holds_alternative<MaximalConsistentSet>(kv.first)) {
+                std::cout << "mcs ";
+            }
+        }
+        std::cout << "\n";
+        for (auto& nodes : suc[kv.first]) {
+            if (std::holds_alternative<Cluster>(kv.first)) {
+                std::cout << "cluster ";
+            } else if (std::holds_alternative<MaximalConsistentSet>(kv.first)) {
+                std::cout << "mcs ";
+            }
+        }
+        std::cout << "\n\n";
+    }
 }

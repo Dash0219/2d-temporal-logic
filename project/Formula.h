@@ -1,16 +1,19 @@
 #pragma once
 
 #include <iostream>
+#include <list>
+#include <stack>
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
-#include <stack>
 #include "ASTNode.h"
 #include "Cluster.h"
 
 class Formula {
 public:
+    using Element = std::variant<MaximalConsistentSet, Cluster>;
+
     std::string content;
     std::unordered_set<std::string> propositions;
     std::unordered_set<std::string> temporal_formulas;
@@ -18,6 +21,11 @@ public:
     std::vector<MaximalConsistentSet> MCS;
     std::vector<MaximalConsistentSet> irreflexives;
     std::vector<Cluster> clusters;
+    // std::list<MaximalConsistentSet> MCS;
+    // std::list<MaximalConsistentSet> irreflexives;
+    // std::list<Cluster> clusters;
+    std::unordered_map<Element, std::vector<Element>> pre;
+    std::unordered_map<Element, std::vector<Element>> suc;
 
     bool setup_formula(std::string& input);
     void clear();
@@ -42,4 +50,6 @@ private:
     void _get_mcs_from_valuations(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases);
     bool _evaluate(std::string& fmla, std::unordered_set<std::string>& true_bases, std::unordered_map<std::string, bool>& cache);
     void clear_node(ASTNode*& node);
+    void build_graphs();
+    void debug_graphs();
 };

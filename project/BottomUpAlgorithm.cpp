@@ -1,33 +1,47 @@
 #include "BottomUpAlgorithm.h"
 
 
-// TODO: write a function vector<BM> -> bool
-// check if fmla is in a open, fabricated BM
-bool BottomUpAlgorithm::run(Formula& fmla) {
-    _add_one_point_boundary_maps(fmla);
+bool BottomUpAlgorithm::run(Formula& fmla, bool print_debug) {
     _add_simple_boundary_maps(fmla);
-    // if (func(fabricated_maps)) return true;
+    _add_one_point_boundary_maps(fmla);
+    std::cout << fmla.clusters.size() << " simple maps\n";
+    std::cout << fmla.irreflexives.size() << " one-point maps\n";
 
-    std::vector<BoundaryMap> new_maps;
-    bool changes = true;
+    if (check_for_solution(fabricated_maps)) return true;
+    
+    std::unordered_set<BoundaryMap> new_maps;
+    std::optional<BoundaryMap> solution;
+    size_t old_size = fabricated_maps.size();
+    size_t new_size = -1;
+    int iter = 1;
 
-    while (changes) {
-        changes = false;
+    while (old_size != new_size) {
+        old_size = new_size;
 
         new_maps = close(fmla);
-        // changes |= !new_maps.empty();
-        // if (func(new_maps)) return true;
-        // new_maps.clear();
+        if (print_debug) std::cout << "iteration " << iter << " close:   " << new_maps.size() << " maps found\n";
+        solution = check_for_solution(new_maps);
+        if (solution.has_value()) return true;
+        fabricated_maps.insert(new_maps.begin(), new_maps.end());
+        new_maps.clear();
 
         new_maps = join(fmla);
-        // changes |= !new_maps.empty();
-        // if (func(new_maps)) return true;
-        // new_maps.clear();
+        if (print_debug) std::cout << "iteration " << iter << " join:    " << new_maps.size() << " maps found\n";
+        solution = check_for_solution(new_maps);
+        if (solution.has_value()) return true;
+        fabricated_maps.insert(new_maps.begin(), new_maps.end());
+        new_maps.clear();
 
         new_maps = shuffle(fmla);
-        // changes |= !new_maps.empty();
-        // if (func(new_maps)) return true;
-        // new_maps.clear();
+        if (print_debug) std::cout << "iteration " << iter << " shuffle: " << new_maps.size() << " maps found\n";
+        solution = check_for_solution(new_maps);
+        if (solution.has_value()) return true;
+        fabricated_maps.insert(new_maps.begin(), new_maps.end());
+        new_maps.clear();
+
+        new_size = fabricated_maps.size();
+
+        ++iter;
     }
     
     return false;
@@ -36,27 +50,33 @@ bool BottomUpAlgorithm::run(Formula& fmla) {
 void BottomUpAlgorithm::_add_simple_boundary_maps(Formula& fmla) {
     for (auto& cluster : fmla.clusters) {
         BoundaryMap new_bm(cluster, fmla.content);
-        fabricated_maps.push_back(new_bm);
+        fabricated_maps.insert(new_bm);
     }
 }
 
-// only used in shuffles i think
 void BottomUpAlgorithm::_add_one_point_boundary_maps(Formula& fmla) {
     for (auto& irrflexive : fmla.irreflexives) {
         BoundaryMap new_bm(irrflexive, fmla.content);
-        fabricated_maps.push_back(new_bm);
+        fabricated_maps.insert(new_bm);
     }
 }
 
-std::vector<BoundaryMap> BottomUpAlgorithm::join(Formula& fmla) {
-    std::vector<BoundaryMap> result;
+std::optional<BoundaryMap> BottomUpAlgorithm::check_for_solution(std::unordered_set<BoundaryMap>& maps) {
+    for (auto& bm : maps) {
+        if (bm.contains_formula && bm.is_open()) return std::make_optional(bm);
+    }
+    return std::nullopt;
+}
+
+std::unordered_set<BoundaryMap> BottomUpAlgorithm::join(Formula& fmla) {
+    std::unordered_set<BoundaryMap> result;
     int n = fabricated_maps.size();
 
-    for (int i = 0; i < n; ++i) {
-        for (int j = i + 1; j < n; ++j) {
+    for (auto& bm_a : fabricated_maps) {
+        for (auto& bm_b : fabricated_maps) {
             for (int direction = 0; direction < 4; ++direction) {
-                std::optional<BoundaryMap> new_bm = _join_with_direction(fabricated_maps[i], fabricated_maps[j], direction);
-                if (new_bm.has_value()) result.push_back(new_bm.value());
+                std::optional<BoundaryMap> new_bm = _join_with_direction(bm_a, bm_b, direction);
+                if (new_bm.has_value()) result.insert(new_bm.value());
             }
         }
     }
@@ -64,7 +84,7 @@ std::vector<BoundaryMap> BottomUpAlgorithm::join(Formula& fmla) {
     return result;
 }
 
-std::optional<BoundaryMap> BottomUpAlgorithm::_join_with_direction(BoundaryMap& a, BoundaryMap& b, int direction) {
+std::optional<BoundaryMap> BottomUpAlgorithm::_join_with_direction(const BoundaryMap& a, const BoundaryMap& b, int direction) {
     std::optional<BoundaryMap> new_bm;
     bool join_edges_equal;
     bool side_edges_continuous_1;
@@ -114,7 +134,7 @@ std::optional<BoundaryMap> BottomUpAlgorithm::_join_with_direction(BoundaryMap& 
 // direction is the edge we're checking
 // either both edges and both corners that join at the middle exist or they all don't
 // checks go forward in time, ordering of args matters
-bool BottomUpAlgorithm::_join_check_continuous_edges(BoundaryMap& a, BoundaryMap& b, int direction) {
+bool BottomUpAlgorithm::_join_check_continuous_edges(const BoundaryMap& a, const BoundaryMap& b, int direction) {
     if (direction == 0) { // N
         if (a.n.has_value() && b.n.has_value() && a.t.has_value() && b.l.has_value()) {
             return a.t == b.l;
@@ -152,12 +172,9 @@ bool BottomUpAlgorithm::_join_check_continuous_edges(BoundaryMap& a, BoundaryMap
     return false;
 }
 
-// TODO: clarify this
-// does the NESW traces include the corners, the new algo pdf says no
-
 // only N and E joins, swap args for S and W joins
 // returns std::nullopt if the join fails because joining either two edge traces fails
-std::optional<BoundaryMap> BottomUpAlgorithm::_join_create_new_boundary_map(BoundaryMap& a, BoundaryMap& b, int direction) {
+std::optional<BoundaryMap> BottomUpAlgorithm::_join_create_new_boundary_map(const BoundaryMap& a, const BoundaryMap& b, int direction) {
     BoundaryMap new_bm;
 
     if (direction == 0) { // N
@@ -234,7 +251,7 @@ std::optional<BoundaryMap> BottomUpAlgorithm::_join_create_new_boundary_map(Boun
 // s -> b (past)
 // w -> b (past)
 // everything else is "untouched" by the join
-bool BottomUpAlgorithm::_join_defects_passed_correctly(BoundaryMap& a) {
+bool BottomUpAlgorithm::_join_defects_passed_correctly(const BoundaryMap& a) {
     std::unordered_set<std::string> n_future_defects;
     std::unordered_set<std::string> e_future_defects;
     std::unordered_set<std::string> s_past_defects;
@@ -272,7 +289,7 @@ bool BottomUpAlgorithm::_join_defects_passed_correctly(BoundaryMap& a) {
     return true;
 }
 
-void BottomUpAlgorithm::_join_collect_defects_along_trace(Trace& trace, std::unordered_set<std::string>& defects, bool reverse_time) {
+void BottomUpAlgorithm::_join_collect_defects_along_trace(const Trace& trace, std::unordered_set<std::string>& defects, bool reverse_time) {
     if (reverse_time) { // going from future -> past, collecting past defects
         for (auto it = trace.sequence.rbegin(); it != trace.sequence.rend(); ++it) {
             auto& elem = *it;
@@ -366,8 +383,8 @@ std::optional<BoundaryMap> BottomUpAlgorithm::_shuffle_create_new_boundary_map(C
 }
 */
 
-std::vector<BoundaryMap> BottomUpAlgorithm::shuffle(Formula& fmla) {
-    std::vector<BoundaryMap> result;
+std::unordered_set<BoundaryMap> BottomUpAlgorithm::shuffle(Formula& fmla) {
+    std::unordered_set<BoundaryMap> result;
     int n = fmla.clusters.size();
     int m = fabricated_maps.size();
 
@@ -378,15 +395,19 @@ std::vector<BoundaryMap> BottomUpAlgorithm::shuffle(Formula& fmla) {
             // also contains the case when i == j
             if (fmla.clusters[j] <= fmla.clusters[i]) continue; 
             
-            std::optional<BoundaryMap> new_bm = _shuffle_find_shuffle(result, fmla.clusters[j], fmla.clusters[i]);
-            if (new_bm.has_value()) result.push_back(new_bm.value());
+            std::optional<BoundaryMap> new_bm = _shuffle_find_shuffle(fmla.clusters[j], fmla.clusters[i]);
+            if (new_bm.has_value()) result.insert(new_bm.value());
         }
     }
     
     return result;
 }
 
-std::optional<BoundaryMap> BottomUpAlgorithm::_shuffle_find_shuffle(std::vector<BoundaryMap>& result, Cluster& plus, Cluster& minus) {
+std::optional<BoundaryMap> BottomUpAlgorithm::_shuffle_find_shuffle(Cluster& plus, Cluster& minus) {
+    // skip in future iterations
+    // can have a separate unordered_set<pair<int, int>> cache actually
+    if (fabricated_maps.contains(_shuffle_create_new_boundary_map(plus, minus, true))) return std::nullopt;
+
     int m = fabricated_maps.size();
     int i = 0;
     bool found_one_point_map = false;
@@ -445,54 +466,193 @@ BoundaryMap BottomUpAlgorithm::_shuffle_create_new_boundary_map(Cluster& plus, C
     return new_bm;
 }
 
-// TODO: how to know which open maps ive closed before, the closure will always generate the same maps
-// only need to hash the + - clusters and bool
-// if i can figure out how to hash the whole map then even better
+/* 
+corner is added IFF both adj edges are added
+:thinking: :thinking: :thinking:
 
-// corner is added IFF both adj edges are added
-// possible configurations:
-//    2^4 over edges, then fill in corners
-std::vector<BoundaryMap> BottomUpAlgorithm::close(Formula& fmla) {
-    std::vector<BoundaryMap> result;
+add_edges()
+DFS on directions [1..4], skip the ones not in config
+at depth == 3, call add_corners()
+
+add_corners()
+DFS on corners [1..4], skip the ones that cant be added
+at depth == 3, insert the new map to result
+
+or try this
+plus and minus are fixed, use those as anchors
+find any [0..2] clusters <= minus
+find any [0..2] clusters >= plus
+temporal ordering should be preserved this way???
+*/
+
+std::unordered_set<BoundaryMap> BottomUpAlgorithm::close(Formula& fmla) {
+    std::unordered_set<BoundaryMap> new_maps;
 
     for (auto& bm : fabricated_maps) {
         // ignore particaly closed or fully closed ones
         if (!bm.is_open()) continue;
-        
-        // TODO: _close_find_clusters(BoundaryMap&, int) -> vector<BoundaryMap>
-        // ocnfig: int [0-15] 
-        for (int config = 0; config < 16; ++config) {
-            _close_find_clusters(fmla, bm, config);
-
-        }
+        _close_add_edges(fmla, bm, new_maps, 0);
     }
-
-    return result;
-}
-
-void BottomUpAlgorithm::_close_find_clusters(Formula& fmla, BoundaryMap& bm, int config) {
-
-    if (config & 0b0001) { // N
-        _close_find_clusters_with_direction(fmla, bm, 0);
-    }
-
-    if (config & 0b0010) { // E
-        _close_find_clusters_with_direction(fmla, bm, 1);    
-    }
-
-    if (config & 0b0100) { // S
-        
-    }
-
-    if (config & 0b1000) { // W
-        
-    }
-
-
-    // return new_maps;
-}
-
-std::vector<BoundaryMap> BottomUpAlgorithm::_close_find_clusters_with_direction(Formula& fmla, BoundaryMap& bm, int direction) {
-    std::vector<BoundaryMap> new_maps;
+    
     return new_maps;
+}
+
+// 15 configs for edges
+// direction
+// 0: n, e
+// 1: s, w
+void BottomUpAlgorithm::_close_add_edges(Formula& fmla, const BoundaryMap& bm, std::unordered_set<BoundaryMap>& new_maps, int direction) {
+    Cluster plus = bm.plus.value();
+    Cluster minus = bm.minus.value();
+    
+    if (direction == 0) {
+        _close_add_edges(fmla, bm, new_maps, 1);
+
+        for (auto& element_n : fmla.suc[plus]) {
+            if (std::holds_alternative<MaximalConsistentSet>(element_n)) continue;
+            for (auto& element_e : fmla.pre[plus]) {
+                if (std::holds_alternative<MaximalConsistentSet>(element_e)) continue;
+                if (element_n == element_e) continue;
+                
+                BoundaryMap new_bm_n(bm);
+                BoundaryMap new_bm_e(bm);
+                BoundaryMap new_bm_ne(bm);
+                Trace n(std::get<Cluster>(element_n));
+                Trace e(std::get<Cluster>(element_e));
+                
+                new_bm_n.n = n;
+                new_bm_e.e = e;
+                new_bm_ne.n = n;
+                new_bm_ne.e = e;
+                
+                _close_add_edges(fmla, new_bm_n, new_maps, 1);
+                _close_add_edges(fmla, new_bm_e, new_maps, 1);
+                _close_add_edges(fmla, new_bm_ne, new_maps, 1);
+
+                _close_add_corners(fmla, new_bm_n, new_maps, 1);
+                _close_add_corners(fmla, new_bm_e, new_maps, 1);
+                _close_add_corners(fmla, new_bm_ne, new_maps, 1);
+            }       
+        }
+    } else if (direction == 1) {
+        for (auto& element_s : fmla.pre[minus]) {
+            if (std::holds_alternative<MaximalConsistentSet>(element_s)) continue;
+
+            for (auto& element_w : fmla.pre[minus]) {
+                if (std::holds_alternative<MaximalConsistentSet>(element_w)) continue;
+                if (element_s == element_w) continue;
+
+                BoundaryMap new_bm_s(bm);
+                BoundaryMap new_bm_w(bm);
+                BoundaryMap new_bm_sw(bm);
+                Trace s(std::get<Cluster>(element_s));
+                Trace w(std::get<Cluster>(element_w));
+
+                new_bm_s.s = s;
+                new_bm_w.w = w;
+                new_bm_sw.s = s;
+                new_bm_sw.w = w;
+
+                _close_add_corners(fmla, new_bm_s, new_maps, 0);
+                _close_add_corners(fmla, new_bm_w, new_maps, 0);
+                _close_add_corners(fmla, new_bm_sw, new_maps, 0);
+            }       
+        }
+    } else {
+        return;
+    }
+}
+
+void BottomUpAlgorithm::_close_add_corners(Formula& fmla, const BoundaryMap& bm, std::unordered_set<BoundaryMap>& new_maps, int corner) {
+    if (corner == 0) { // l
+        if (bm.w.has_value() && bm.n.has_value()) {
+            std::unordered_set<Formula::Element> candidates(
+                fmla.suc[std::get<Cluster>(bm.w.value().sequence[0])].begin(), 
+                fmla.suc[std::get<Cluster>(bm.w.value().sequence[0])].end()
+            );
+            std::unordered_set<Formula::Element> other(
+                fmla.pre[std::get<Cluster>(bm.n.value().sequence[0])].begin(), 
+                fmla.pre[std::get<Cluster>(bm.n.value().sequence[0])].end()
+            );
+
+            for (auto& element : candidates)
+                if (!other.contains(element) || std::holds_alternative<Cluster>(element)) candidates.erase(element);
+
+            for (auto& element : candidates) {
+                BoundaryMap new_bm(bm);
+                new_bm.l = std::get<MaximalConsistentSet>(element);
+                _close_add_corners(fmla, new_bm, new_maps, 1);
+            }
+        } else {
+            _close_add_corners(fmla, bm, new_maps, 1);
+        }
+    } else if (corner == 1) { // r
+        if (bm.e.has_value() && bm.s.has_value()) {
+            std::unordered_set<Formula::Element> candidates(
+                fmla.pre[std::get<Cluster>(bm.e.value().sequence[0])].begin(), 
+                fmla.pre[std::get<Cluster>(bm.e.value().sequence[0])].end()
+            );
+            std::unordered_set<Formula::Element> other(
+                fmla.suc[std::get<Cluster>(bm.s.value().sequence[0])].begin(), 
+                fmla.suc[std::get<Cluster>(bm.s.value().sequence[0])].end()
+            );
+
+            for (auto& element : candidates)
+                if (!other.contains(element) || std::holds_alternative<Cluster>(element)) candidates.erase(element);
+
+            for (auto& element : candidates) {
+                BoundaryMap new_bm(bm);
+                new_bm.r = std::get<MaximalConsistentSet>(element);
+                _close_add_corners(fmla, new_bm, new_maps, 2);
+            }
+        } else {
+            _close_add_corners(fmla, bm, new_maps, 2);
+        }
+    } else if (corner == 2) { // t
+        if (bm.n.has_value() && bm.e.has_value()) {
+            std::unordered_set<Formula::Element> candidates(
+                fmla.suc[std::get<Cluster>(bm.n.value().sequence[0])].begin(), 
+                fmla.suc[std::get<Cluster>(bm.n.value().sequence[0])].end()
+            );
+            std::unordered_set<Formula::Element> other(
+                fmla.suc[std::get<Cluster>(bm.e.value().sequence[0])].begin(), 
+                fmla.suc[std::get<Cluster>(bm.e.value().sequence[0])].end()
+            );
+
+            for (auto& element : candidates) 
+                if (!other.contains(element) || std::holds_alternative<Cluster>(element)) candidates.erase(element);
+            
+            for (auto& element : candidates) {
+                BoundaryMap new_bm(bm);
+                new_bm.t = std::get<MaximalConsistentSet>(element);
+                _close_add_corners(fmla, new_bm, new_maps, 3);
+            }
+        } else {
+            _close_add_corners(fmla, bm, new_maps, 3);
+        }
+    } else if (corner == 3) { // b
+        if (bm.s.has_value() && bm.w.has_value()) {
+            std::unordered_set<Formula::Element> candidates(
+                fmla.pre[std::get<Cluster>(bm.s.value().sequence[0])].begin(), 
+                fmla.pre[std::get<Cluster>(bm.s.value().sequence[0])].end()
+            );
+            std::unordered_set<Formula::Element> other(
+                fmla.pre[std::get<Cluster>(bm.w.value().sequence[0])].begin(), 
+                fmla.pre[std::get<Cluster>(bm.w.value().sequence[0])].end()
+            );
+
+            for (auto& element : candidates)
+                if (!other.contains(element) || std::holds_alternative<Cluster>(element)) candidates.erase(element);
+
+            for (auto& element : candidates) {
+                BoundaryMap new_bm(bm);
+                new_bm.b = std::get<MaximalConsistentSet>(element);
+                new_maps.insert(new_bm);
+            }
+        } else {
+            new_maps.insert(bm);
+        }
+    } else {
+        return;
+    }
 }

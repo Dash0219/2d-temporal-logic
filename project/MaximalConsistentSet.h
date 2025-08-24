@@ -21,6 +21,8 @@ public:
     void show_formulas() const;
 private:
     std::unordered_set<std::string> closure_set;
+
+    bool _compare_identity(const MaximalConsistentSet& other, const std::string& fmla) const;
 };
 
 

@@ -15,26 +15,26 @@ bool BoundaryMap::operator==(const BoundaryMap& other) const {
 }
 
 // {+, -}, + == -
-bool BoundaryMap::is_simple() {
+bool BoundaryMap::is_simple() const {
     return is_open() && plus == minus;
 }
 
 // {+, -}
-bool BoundaryMap::is_open() {
+bool BoundaryMap::is_open() const {
     return !l.has_value() && !r.has_value() && !t.has_value() && !b.has_value() 
         && !n.has_value() && !e.has_value() && !s.has_value() && !w.has_value() 
         && plus.has_value() && minus.has_value();
 }
 
 // {l, r, t, b, n, e, s, w, +, -}
-bool BoundaryMap::is_closed() {
+bool BoundaryMap::is_closed() const {
     return l.has_value() && r.has_value() && t.has_value() && b.has_value() 
         && n.has_value() && e.has_value() && s.has_value() && w.has_value() 
         && plus.has_value() && minus.has_value();
 }
 
 // {t, b}, t == b
-bool BoundaryMap::is_one_point() {
+bool BoundaryMap::is_one_point() const {
     return !l.has_value() && !r.has_value() && t.has_value() && b.has_value() 
         && !n.has_value() && !e.has_value() && !s.has_value() && !w.has_value() 
         && !plus.has_value() && !minus.has_value()
