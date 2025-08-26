@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <stack>
 #include <string>
@@ -416,37 +417,30 @@ std::vector<std::vector<bool>> create_and_print_graph(Formula* fmla, bool print_
 }
 //*/
 
-/*
+///*
 // use (F(p/\q)/\Pr) as the testcase
 void trace_test(Formula* fmla) {
     std::cout << std::boolalpha;
 
     Trace a, b, c, d, e, f, g;
-    a.push_back(fmla->element_map[*std::next(fmla->clusters.begin(), 1)]);
-    a.push_back(fmla->element_map[*std::next(fmla->irreflexives.begin(), 3)]);
-    a.push_back(fmla->element_map[*std::next(fmla->clusters.begin(), 3)]);
-
-    b.push_back(fmla->element_map[*std::next(fmla->clusters.begin(), 3)]);
-    b.push_back(fmla->element_map[*std::next(fmla->irreflexives.begin(), 1)]);
-    b.push_back(fmla->element_map[*std::next(fmla->clusters.begin(), 2)]);
-
-    c.push_back(fmla->element_map[*std::next(fmla->clusters.begin(), 1)]);
-    c.push_back(fmla->element_map[*std::next(fmla->irreflexives.begin(), 3)]);
-
-    d.push_back(fmla->element_map[*std::next(fmla->clusters.begin(), 1)]);
-    d.push_back(fmla->element_map[*std::next(fmla->irreflexives.begin(), 3)]);
-
-    e.push_back(fmla->element_map[*std::next(fmla->irreflexives.begin(), 1)]);
-    e.push_back(fmla->element_map[*std::next(fmla->clusters.begin(), 2)]);
-
-    f.push_back(fmla->element_map[*std::next(fmla->clusters.begin(), 1)]);
-    f.push_back(fmla->element_map[*std::next(fmla->irreflexives.begin(), 3)]);
-
-    g.push_back(fmla->element_map[*std::next(fmla->irreflexives.begin(), 3)]);
-    g.push_back(fmla->element_map[*std::next(fmla->clusters.begin(), 3)]);
-    g.push_back(fmla->element_map[*std::next(fmla->irreflexives.begin(), 1)]);
-    g.push_back(fmla->element_map[*std::next(fmla->clusters.begin(), 2)]);
-
+    a.push_back(fmla->pointer_to_element[*std::next(fmla->clusters.begin(), 1)]);
+    a.push_back(fmla->pointer_to_element[*std::next(fmla->irreflexives.begin(), 3)]);
+    a.push_back(fmla->pointer_to_element[*std::next(fmla->clusters.begin(), 3)]);
+    b.push_back(fmla->pointer_to_element[*std::next(fmla->clusters.begin(), 3)]);
+    b.push_back(fmla->pointer_to_element[*std::next(fmla->irreflexives.begin(), 1)]);
+    b.push_back(fmla->pointer_to_element[*std::next(fmla->clusters.begin(), 2)]);
+    c.push_back(fmla->pointer_to_element[*std::next(fmla->clusters.begin(), 1)]);
+    c.push_back(fmla->pointer_to_element[*std::next(fmla->irreflexives.begin(), 3)]);
+    d.push_back(fmla->pointer_to_element[*std::next(fmla->clusters.begin(), 1)]);
+    d.push_back(fmla->pointer_to_element[*std::next(fmla->irreflexives.begin(), 3)]);
+    e.push_back(fmla->pointer_to_element[*std::next(fmla->irreflexives.begin(), 1)]);
+    e.push_back(fmla->pointer_to_element[*std::next(fmla->clusters.begin(), 2)]);
+    f.push_back(fmla->pointer_to_element[*std::next(fmla->clusters.begin(), 1)]);
+    f.push_back(fmla->pointer_to_element[*std::next(fmla->irreflexives.begin(), 3)]);
+    g.push_back(fmla->pointer_to_element[*std::next(fmla->irreflexives.begin(), 3)]);
+    g.push_back(fmla->pointer_to_element[*std::next(fmla->clusters.begin(), 3)]);
+    g.push_back(fmla->pointer_to_element[*std::next(fmla->irreflexives.begin(), 1)]);
+    g.push_back(fmla->pointer_to_element[*std::next(fmla->clusters.begin(), 2)]);
 
     a.join(b);
     b.join(a);
@@ -454,18 +448,16 @@ void trace_test(Formula* fmla) {
     d.join(e);
     f.join(g);
 
-    std::cout << a.sequence.size() << "\n"; // 5
-    std::cout << b.sequence.size() << "\n"; // 3
-    std::cout << c.sequence.size() << "\n"; // 5
-    std::cout << d.sequence.size() << "\n"; // 2
-    std::cout << e.sequence.size() << "\n"; // 2
-    std::cout << f.sequence.size() << "\n"; // 5
-    std::cout << g.sequence.size() << "\n"; // 4
+    assert(a.sequence.size() == 5);
+    assert(b.sequence.size() == 3);
+    assert(c.sequence.size() == 5);
+    assert(d.sequence.size() == 2);
+    assert(e.sequence.size() == 2);
+    assert(f.sequence.size() == 5);
+    assert(g.sequence.size() == 4);
 
-    std::cout << a.join(c) << "\n"; // false
-    std::cout << (a == c) << "\n"; // true
-
-    std::cout << std::string(32, '=') << "\n";
+    assert(a.join(c) == false);
+    assert(a == c);
 }
 //*/
 
@@ -533,7 +525,7 @@ int main() {
         // debugging functions
         std::vector<std::vector<bool>> g;
         g = create_and_print_graph(fmla, false);
-        // trace_test(fmla);
+        trace_test(fmla);
         // print_memory_usage();
         // std::cout << (**fmla->irreflexives.begin() <= **fmla->clusters.begin()) << " " << (**fmla->irreflexives.begin() <= **fmla->clusters.begin()) << "\n";
     }

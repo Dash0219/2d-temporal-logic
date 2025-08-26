@@ -16,25 +16,20 @@ public:
     using Element = std::variant<MaximalConsistentSet*, Cluster*>;
 
     Formula();
-    Formula(std::string test);
+    Formula(std::string input);
 
     std::string content;
     std::unordered_set<std::string> propositions;
     std::unordered_set<std::string> temporal_formulas;
     std::unordered_set<std::string> closure_set;
-    // std::vector<MaximalConsistentSet> MCS;
-    // std::vector<MaximalConsistentSet> irreflexives;
-    // std::vector<Cluster> clusters;
-    std::list<MaximalConsistentSet> mcs_storage;
-    std::list<Cluster> cluster_storage;
-    std::list<Element> element_storage;
 
     std::list<MaximalConsistentSet*> irreflexives;
     std::list<Cluster*> clusters;
     std::list<Element*> elements;
 
-    std::unordered_map<Element, std::vector<Element>> pre;
-    std::unordered_map<Element, std::vector<Element>> suc;
+    std::unordered_map<Element*, std::vector<Element*>> pre;
+    std::unordered_map<Element*, std::vector<Element*>> suc;
+    std::unordered_map<void*, Element*> pointer_to_element;
 
     bool setup_formula();
 
@@ -42,7 +37,7 @@ public:
     void show_propositions();
     void show_temporal_formulas();
     void show_closure_set();
-    void show_MCS();
+    // void show_MCS();
     void show_irreflexives();
     void show_clusters(bool show_all_mcs = false);
     void show_graphs();
