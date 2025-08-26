@@ -14,28 +14,6 @@ bool MaximalConsistentSet::operator==(const MaximalConsistentSet& other) const {
 
 bool MaximalConsistentSet::operator<=(const MaximalConsistentSet& other) const {
     for (const std::string& fmla : closure_set) {
-        // if (!_compare_identity(other, fmla)) {
-        //     return false;
-        // } else if (fmla[0] == '~' && fmla.size() > 2) {
-        //     std::string fmla_id = std::string(1, '~');
-        //     if (fmla[1] == 'F') {
-        //         // fmla_id =    
-        //     } else if (fmla[1] == 'P') {
-
-        //     } else if (fmla[1] == 'G') {
-
-        //     } else if (fmla[1] == 'H') {
-
-        //     }
-        // }
-
-
-
-
-
-
-
-
 
         std::string phi = fmla.substr(1);
 

@@ -198,7 +198,8 @@ void Formula::_generate_MCS_step(std::vector<std::string>& props_and_temps, std:
 }
 
 void Formula::_get_mcs_from_valuations(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases) {
-    MaximalConsistentSet mcs(closure_set);
+    // MaximalConsistentSet mcs(closure_set);
+    auto& mcs = mcs_storage.emplace_back(closure_set);
     std::unordered_map<std::string, bool> cache;
     for (const std::string& fmla : closure_set)
         if (_evaluate(const_cast<std::string&>(fmla), true_bases, cache))
@@ -227,17 +228,29 @@ void Formula::_get_mcs_from_valuations(std::vector<std::string>& props_and_temps
     if (!merged) {
         if (mcs <= mcs) {
             // create a new singleton cluster if the mcs is reflexive
-            Cluster new_cluster(&mcs);
-            cluster_storage.push_back(new_cluster);
+            auto& new_cluster = cluster_storage.emplace_back(&mcs);
             clusters.push_back(&new_cluster);
-
             // for debugging purposes: show all mcs in a cluster
             new_cluster.sets.push_back(&mcs);
         } else {
-            
             irreflexives.push_back(&mcs);
         }
     }
+
+    // if (!merged) {
+    //     if (mcs <= mcs) {
+    //         // create a new singleton cluster if the mcs is reflexive
+    //         Cluster new_cluster(&mcs);
+    //         cluster_storage.push_back(new_cluster);
+    //         clusters.push_back(&new_cluster);
+
+    //         // for debugging purposes: show all mcs in a cluster
+    //         new_cluster.sets.push_back(&mcs);
+    //     } else {
+            
+    //         irreflexives.push_back(&mcs);
+    //     }
+    // }
 }
 
 bool Formula::_evaluate(std::string& fmla, std::unordered_set<std::string>& true_bases, std::unordered_map<std::string, bool>& cache) {
