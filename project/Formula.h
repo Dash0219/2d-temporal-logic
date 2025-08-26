@@ -15,6 +15,9 @@ class Formula {
 public:
     using Element = std::variant<MaximalConsistentSet*, Cluster*>;
 
+    Formula();
+    Formula(std::string test);
+
     std::string content;
     std::unordered_set<std::string> propositions;
     std::unordered_set<std::string> temporal_formulas;
@@ -24,14 +27,16 @@ public:
     // std::vector<Cluster> clusters;
     std::list<MaximalConsistentSet> mcs_storage;
     std::list<Cluster> cluster_storage;
+    std::list<Element> element_storage;
 
     std::list<MaximalConsistentSet*> irreflexives;
     std::list<Cluster*> clusters;
+    std::list<Element*> elements;
 
     std::unordered_map<Element, std::vector<Element>> pre;
     std::unordered_map<Element, std::vector<Element>> suc;
 
-    bool setup_formula(std::string& input);
+    bool setup_formula();
 
     void show_tree();
     void show_propositions();
@@ -40,6 +45,7 @@ public:
     void show_MCS();
     void show_irreflexives();
     void show_clusters(bool show_all_mcs = false);
+    void show_graphs();
 
 private:
     ASTNode* root = nullptr;
@@ -50,8 +56,8 @@ private:
     void generate_MCS_and_clusters();
     void _generate_MCS_step(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases, int current);
     void _get_mcs_from_valuations(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases);
+    void generate_elements();
     bool _evaluate(std::string& fmla, std::unordered_set<std::string>& true_bases, std::unordered_map<std::string, bool>& cache);
     void clear_node(ASTNode*& node);
-    void build_graphs();
-    void debug_graphs();
+    void generate_graphs();
 };

@@ -48,7 +48,7 @@ bool MaximalConsistentSet::operator<=(const MaximalConsistentSet& other) const {
 }
 
 bool MaximalConsistentSet::operator<=(const Cluster& other) const {
-    return *this <= other.representative;
+    return *this <= *other.representative;
 }
 
 void MaximalConsistentSet::show_formulas() const {

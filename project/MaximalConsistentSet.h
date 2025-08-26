@@ -13,6 +13,7 @@ public:
     MaximalConsistentSet(const std::unordered_set<std::string>& closure_set);
 
     std::unordered_set<std::string> formulas;
+    std::unordered_set<std::string> closure_set;
     
     bool operator==(const MaximalConsistentSet& other) const;
     bool operator<=(const MaximalConsistentSet& other) const;
@@ -20,7 +21,6 @@ public:
 
     void show_formulas() const;
 private:
-    std::unordered_set<std::string> closure_set;
 
     // bool _compare_identity(const MaximalConsistentSet& other, const std::string& fmla) const;
 };
