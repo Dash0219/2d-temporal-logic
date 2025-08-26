@@ -177,7 +177,7 @@ bool BottomUpAlgorithm::_join_check_continuous_edges(const BoundaryMap& a, const
 std::optional<BoundaryMap> BottomUpAlgorithm::_join_create_new_boundary_map(const BoundaryMap& a, const BoundaryMap& b, int direction) {
     BoundaryMap new_bm;
 
-    if (direction == 0) { // N
+    if (direction == 0) { // N join
         new_bm.l = b.l;
         new_bm.r = a.r;
         new_bm.b = a.b;
@@ -185,18 +185,19 @@ std::optional<BoundaryMap> BottomUpAlgorithm::_join_create_new_boundary_map(cons
         
         new_bm.n = b.n;
         if (a.e.has_value() && a.t.has_value() && b.e.has_value()) {
-            Trace new_e = a.e.value(); 
-            if (new_e.push_back(a.t.value()) && new_e.join(b.e.value())) {
-                new_bm.e = new_e;
+            Trace new_e(a.e.value()); 
+            if (new_e.push_back(&Element{a.t.value()}) && new_e.join(*b.e.value())) {
+                new_bm.e = std::make_optional(&new_e);
             } else {
                 return std::nullopt;
             }
         } else {
             new_bm.e = std::nullopt;
         }
+
         new_bm.s = a.s;
         if (a.w.has_value() && a.l.has_value() && b.w.has_value()) {
-            Trace new_w = a.w.value(); 
+            Trace& new_w = *a.w.value(); 
             if (new_w.push_back(a.l.value()) && new_w.join(b.w.value())) {
                 new_bm.w = new_w;
             } else {
@@ -208,7 +209,7 @@ std::optional<BoundaryMap> BottomUpAlgorithm::_join_create_new_boundary_map(cons
 
         new_bm.plus = b.plus;
         new_bm.minus = a.minus;
-    } else if (direction == 1) { // E
+    } else if (direction == 1) { // E join
         new_bm.l = a.l;
         new_bm.r = b.r;
         new_bm.b = a.b;
@@ -386,17 +387,18 @@ std::optional<BoundaryMap> BottomUpAlgorithm::_shuffle_create_new_boundary_map(C
 std::unordered_set<BoundaryMap> BottomUpAlgorithm::shuffle(Formula& fmla) {
     std::unordered_set<BoundaryMap> result;
     int n = fmla.clusters.size();
-    int m = fabricated_maps.size();
+    // int m = fabricated_maps.size();
 
     // guess a pair of clusters to be the plus and minus
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
+    for (auto& plus : fmla.clusters) {
+        for (auto& minus : fmla.clusters) {
             // exclude clusters pairs in the wrong order
-            // also contains the case when i == j
-            if (fmla.clusters[j] <= fmla.clusters[i]) continue; 
+            // also contains the case when a == b
+            if (minus <= plus && (minus != plus)) {
+                std::optional<BoundaryMap> new_bm = _shuffle_find_shuffle(plus, minus);
+                if (new_bm.has_value()) result.insert(new_bm.value());
+            } 
             
-            std::optional<BoundaryMap> new_bm = _shuffle_find_shuffle(fmla.clusters[j], fmla.clusters[i]);
-            if (new_bm.has_value()) result.insert(new_bm.value());
         }
     }
     
@@ -502,8 +504,8 @@ std::unordered_set<BoundaryMap> BottomUpAlgorithm::close(Formula& fmla) {
 // 0: n, e
 // 1: s, w
 void BottomUpAlgorithm::_close_add_edges(Formula& fmla, const BoundaryMap& bm, std::unordered_set<BoundaryMap>& new_maps, int direction) {
-    Cluster plus = bm.plus.value();
-    Cluster minus = bm.minus.value();
+    Element& plus = Element{bm.plus.value()};
+    Element& minus = Element{bm.minus.value()};
     
     if (direction == 0) {
         _close_add_edges(fmla, bm, new_maps, 1);
@@ -517,8 +519,8 @@ void BottomUpAlgorithm::_close_add_edges(Formula& fmla, const BoundaryMap& bm, s
                 BoundaryMap new_bm_n(bm);
                 BoundaryMap new_bm_e(bm);
                 BoundaryMap new_bm_ne(bm);
-                Trace n(std::get<Cluster>(element_n));
-                Trace e(std::get<Cluster>(element_e));
+                Trace n(std::get<Cluster*>(element_n));
+                Trace e(std::get<Cluster*>(element_e));
                 
                 new_bm_n.n = n;
                 new_bm_e.e = e;

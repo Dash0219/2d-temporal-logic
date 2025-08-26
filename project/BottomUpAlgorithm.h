@@ -6,7 +6,7 @@
 
 class BottomUpAlgorithm {
 public:
-    using Element = std::variant<MaximalConsistentSet, Cluster>;
+    using Element = std::variant<MaximalConsistentSet*, Cluster*>;
     // std::vector<BoundaryMap> one_point_maps;
     // std::vector<BoundaryMap> fabricated_maps;
     std::unordered_set<BoundaryMap> fabricated_maps;

@@ -84,22 +84,22 @@ void MaximalConsistentSet::show_formulas() const {
     std::cout << "}\n";
 }
 
-bool MaximalConsistentSet::_compare_identity(const MaximalConsistentSet& other, const std::string& fmla) const {
-    std::string phi = fmla.substr(1);
+// bool MaximalConsistentSet::_compare_identity(const MaximalConsistentSet& other, const std::string& fmla) const {
+//     std::string phi = fmla.substr(1);
 
-    if (fmla[0] == 'F') {
-        if (other.formulas.contains(phi) && !formulas.contains(fmla) ||
-            other.formulas.contains(fmla) && !formulas.contains(fmla)) return false;
-    } else if (fmla[0] == 'P') {
-        if (formulas.contains(phi) && !other.formulas.contains(fmla) ||
-            formulas.contains(fmla) && !other.formulas.contains(fmla)) return false;
-    } else if (fmla[0] == 'G') {
-        if (formulas.contains(fmla) && !other.formulas.contains(phi) ||
-            formulas.contains(fmla) && !other.formulas.contains(fmla)) return false;
-    } else if (fmla[0] == 'H') {
-        if (other.formulas.contains(fmla) && !formulas.contains(phi) ||
-            other.formulas.contains(fmla) && !formulas.contains(fmla)) return false;
-    }
+//     if (fmla[0] == 'F') {
+//         if (other.formulas.contains(phi) && !formulas.contains(fmla) ||
+//             other.formulas.contains(fmla) && !formulas.contains(fmla)) return false;
+//     } else if (fmla[0] == 'P') {
+//         if (formulas.contains(phi) && !other.formulas.contains(fmla) ||
+//             formulas.contains(fmla) && !other.formulas.contains(fmla)) return false;
+//     } else if (fmla[0] == 'G') {
+//         if (formulas.contains(fmla) && !other.formulas.contains(phi) ||
+//             formulas.contains(fmla) && !other.formulas.contains(fmla)) return false;
+//     } else if (fmla[0] == 'H') {
+//         if (other.formulas.contains(fmla) && !formulas.contains(phi) ||
+//             other.formulas.contains(fmla) && !formulas.contains(fmla)) return false;
+//     }
 
-    return true;
-}
+//     return true;
+// }

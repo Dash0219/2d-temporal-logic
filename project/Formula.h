@@ -9,26 +9,29 @@
 #include <vector>
 #include "ASTNode.h"
 #include "Cluster.h"
+#include "Trace.h"
 
 class Formula {
 public:
-    using Element = std::variant<MaximalConsistentSet, Cluster>;
+    using Element = std::variant<MaximalConsistentSet*, Cluster*>;
 
     std::string content;
     std::unordered_set<std::string> propositions;
     std::unordered_set<std::string> temporal_formulas;
     std::unordered_set<std::string> closure_set;
-    std::vector<MaximalConsistentSet> MCS;
-    std::vector<MaximalConsistentSet> irreflexives;
-    std::vector<Cluster> clusters;
-    // std::list<MaximalConsistentSet> MCS;
-    // std::list<MaximalConsistentSet> irreflexives;
-    // std::list<Cluster> clusters;
+    // std::vector<MaximalConsistentSet> MCS;
+    // std::vector<MaximalConsistentSet> irreflexives;
+    // std::vector<Cluster> clusters;
+    std::list<MaximalConsistentSet> mcs_storage;
+    std::list<Cluster> cluster_storage;
+
+    std::list<MaximalConsistentSet*> irreflexives;
+    std::list<Cluster*> clusters;
+
     std::unordered_map<Element, std::vector<Element>> pre;
     std::unordered_map<Element, std::vector<Element>> suc;
 
     bool setup_formula(std::string& input);
-    void clear();
 
     void show_tree();
     void show_propositions();
@@ -38,7 +41,6 @@ public:
     void show_irreflexives();
     void show_clusters(bool show_all_mcs = false);
 
-    ~Formula();
 private:
     ASTNode* root = nullptr;
 

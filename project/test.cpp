@@ -11,7 +11,7 @@
 #include "MaximalConsistentSet.h"
 #include "Cluster.h"
 #include "Trace.h"
-#include "BottomUpAlgorithm.h"
+// #include "BottomUpAlgorithm.h"
 
 
 /*
@@ -335,6 +335,8 @@ public:
 };
 
 */
+
+/*
 // make the graph 
 // formatted for: https://csacademy.com/app/graph_editor/
 std::vector<std::vector<bool>> create_and_print_graph(Formula& fmla, bool print_non_reduced_graph) {
@@ -401,7 +403,9 @@ std::vector<std::vector<bool>> create_and_print_graph(Formula& fmla, bool print_
 
     return g;
 }
+*/
 
+/*
 // use (F(p/\q)/\Pr) as the testcase
 void trace_test(Formula& fmla) {
     std::cout << std::boolalpha;
@@ -451,6 +455,7 @@ void trace_test(Formula& fmla) {
 
     std::cout << std::string(32, '=') << "\n";
 }
+*/
 
 void print_memory_usage() {
     struct rusage usage;
@@ -458,19 +463,6 @@ void print_memory_usage() {
 
     std::cout << "Max memory used: " << usage.ru_maxrss / 1024 << " MB" << "\n";
 }
-
-// TODO: maybe add graph as a field of Formula
-// void new_algorithm_test(Formula& fmla, std::vector<std::vector<bool>>& g) {
-//     for (int i = 0; i < fmla.irreflexives.size(); ++i) {
-//         if (!fmla.irreflexives[i].formulas.contains(fmla.content)) continue;
-
-//     }
-
-//     for (int i = 0; i < fmla.clusters.size(); ++i) {
-//         if (!fmla.clusters[i].formulas.contains(fmla.content)) continue;
-
-//     }
-// }
 
 int main() {
     std::vector<std::string> test_inputs = {
@@ -528,14 +520,12 @@ int main() {
         }
 
         // debugging functions
-        std::vector<std::vector<bool>> g;
-        g = create_and_print_graph(fmla, false);
+        // std::vector<std::vector<bool>> g;
+        // g = create_and_print_graph(fmla, false);
         // trace_test(fmla);
         // new_algorithm_test(fmla, g);
         // print_memory_usage();
         // std::cout << (fmla.irreflexives[0] <= fmla.clusters[0]) << " " << (fmla.irreflexives[0] <= fmla.clusters[1]) << "\n";
-
-        fmla.clear();
     }
 
     return 0;

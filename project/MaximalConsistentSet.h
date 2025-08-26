@@ -22,7 +22,7 @@ public:
 private:
     std::unordered_set<std::string> closure_set;
 
-    bool _compare_identity(const MaximalConsistentSet& other, const std::string& fmla) const;
+    // bool _compare_identity(const MaximalConsistentSet& other, const std::string& fmla) const;
 };
 
 

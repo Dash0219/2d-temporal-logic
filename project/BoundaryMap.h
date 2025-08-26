@@ -9,13 +9,13 @@
 class BoundaryMap {
 public:
     bool contains_formula;
-    std::optional<MaximalConsistentSet> l, r, t, b;
+    std::optional<MaximalConsistentSet*> l, r, t, b;
     std::optional<Trace> n, e, s, w;
-    std::optional<Cluster> plus, minus;
+    std::optional<Cluster*> plus, minus;
 
     BoundaryMap();
-    BoundaryMap(Cluster& cluster, std::string& fmla);
-    BoundaryMap(MaximalConsistentSet& irreflexive, std::string& fmla);
+    BoundaryMap(Cluster* cluster, std::string& fmla);
+    BoundaryMap(MaximalConsistentSet* irreflexive, std::string& fmla);
 
     bool operator==(const BoundaryMap& other) const;
 

@@ -3,9 +3,9 @@
 
 BoundaryMap::BoundaryMap() : contains_formula(false) {}
 
-BoundaryMap::BoundaryMap(Cluster& cluster, std::string& fmla) : contains_formula(cluster.formulas.contains(fmla)), plus(cluster), minus(cluster) {}
+BoundaryMap::BoundaryMap(Cluster* cluster, std::string& fmla) : contains_formula(cluster->formulas.contains(fmla)), plus(cluster), minus(cluster) {}
 
-BoundaryMap::BoundaryMap(MaximalConsistentSet& irreflexive, std::string& fmla) : contains_formula(irreflexive.formulas.contains(fmla)), t(irreflexive), b(irreflexive) {}
+BoundaryMap::BoundaryMap(MaximalConsistentSet* irreflexive, std::string& fmla) : contains_formula(irreflexive->formulas.contains(fmla)), t(irreflexive), b(irreflexive) {}
 
 bool BoundaryMap::operator==(const BoundaryMap& other) const {
     return contains_formula == other.contains_formula &&

@@ -1,27 +1,11 @@
 #include "Trace.h"
 
-using Element = std::variant<MaximalConsistentSet, Cluster>;
+using Element = std::variant<MaximalConsistentSet*, Cluster*>;
 
 
 Trace::Trace() {};
 
-Trace::Trace(Cluster& cluster) {
-    sequence.emplace_back(cluster);
-}
-
 bool Trace::operator==(const Trace& other) const {
-    // if (sequence.size() != other.sequence.size()) return false;
-
-    // int n = sequence.size();
-    // for (int i = 0; i < n; ++i) {
-    //     bool is_cluster_1 = std::holds_alternative<Cluster>(sequence[i]);
-    //     bool is_cluster_2 = std::holds_alternative<Cluster>(other.sequence[i]);
-
-    //     if (is_cluster_1 ^ is_cluster_2) return false;
-    //     if (sequence[i] != other.sequence[i]) return false;
-    // }
-
-    // return true;
     return sequence == other.sequence;
 }
 
@@ -33,90 +17,73 @@ bool Trace::operator==(const Trace& other) const {
 //     return false;
 // }
 
-bool Trace::push_back(Element elem) {
+bool Trace::push_back(Element* elem) {
     if (sequence.size() == 0) {
         sequence.push_back(elem);
         return true;
     }
 
-    if (
-        std::holds_alternative<Cluster>(sequence.back())
-     && std::holds_alternative<MaximalConsistentSet>(elem)
-     && std::get<Cluster>(sequence.back()) <= std::get<MaximalConsistentSet>(elem))
-    {
+    auto& back = *sequence.back();
+    auto& next = *elem;
+
+    bool ok = std::visit([&](auto* lastPtr, auto* nextPtr) -> bool {
+        using LastT = std::decay_t<decltype(*lastPtr)>;
+        using NextT = std::decay_t<decltype(*nextPtr)>;
+
+        // only ok if different types, then check temporal ordering
+        if constexpr (!std::is_same_v<LastT, NextT>) {
+            return (*lastPtr <= *nextPtr);
+        } else {
+            return false;
+        }
+    }, back, next);
+
+    if (ok) {
         sequence.push_back(elem);
         return true;
     }
-
-    if (
-        std::holds_alternative<MaximalConsistentSet>(sequence.back())
-     && std::holds_alternative<Cluster>(elem)
-     && std::get<MaximalConsistentSet>(sequence.back()) <= std::get<Cluster>(elem))
-    {
-        sequence.push_back(elem);
-        return true;
-    }
-
     return false;
 }
 
-bool Trace::join(Trace other) {
+bool Trace::join(Trace& other) {
     if (sequence.size() == 0 || other.sequence.size() == 0) return false;
 
-    if (
-        std::holds_alternative<Cluster>(sequence.back())
-     && std::holds_alternative<Cluster>(other.sequence.front())
-     && std::get<Cluster>(sequence.back()) == std::get<Cluster>(other.sequence.front())) 
-    {
-        for (auto it = other.sequence.begin() + 1; it != other.sequence.end(); ++it)
-            sequence.emplace_back(std::move(*it));    
-        return true;
-    }
-    
-    if (
-        std::holds_alternative<MaximalConsistentSet>(sequence.back())
-     && std::holds_alternative<MaximalConsistentSet>(other.sequence.front())
-     && std::get<MaximalConsistentSet>(sequence.back()) == std::get<MaximalConsistentSet>(other.sequence.front())) 
-    {
-        for (auto it = other.sequence.begin() + 1; it != other.sequence.end(); ++it)
-            sequence.emplace_back(std::move(*it));
-        return true;
-    }
+    auto& back  = *sequence.back();
+    auto& front = *other.sequence.front();
 
-    if (
-        std::holds_alternative<MaximalConsistentSet>(sequence.back())
-     && std::holds_alternative<Cluster>(other.sequence.front())
-     && std::get<MaximalConsistentSet>(sequence.back()) <= std::get<Cluster>(other.sequence.front()))
-    {
-        for (auto it = other.sequence.begin(); it != other.sequence.end(); ++it)
-            sequence.emplace_back(std::move(*it));
-        return true;
-    }
+    bool ok = std::visit([&](auto* lastPtr, auto* nextPtr) -> bool {
+        using LastT = std::decay_t<decltype(*lastPtr)>;
+        using NextT = std::decay_t<decltype(*nextPtr)>;
 
-    if (
-        std::holds_alternative<Cluster>(sequence.back())
-     && std::holds_alternative<MaximalConsistentSet>(other.sequence.front())
-     && std::get<Cluster>(sequence.back()) <= std::get<MaximalConsistentSet>(other.sequence.front()))
-    {
-        for (auto it = other.sequence.begin(); it != other.sequence.end(); ++it)
-            sequence.emplace_back(std::move(*it));
-        return true;
-    }
+        // if same type, then they must be equal
+        // if not,       then they must follow ordering
+        if constexpr (std::is_same_v<LastT, NextT>) {
+            return (*lastPtr == *nextPtr);
+        } else {
+            return (*lastPtr <= *nextPtr);
+        }
+    }, back, front);
 
-    return false;
+    if (!ok) return false;
+
+    // do the join
+    // if the back and head are equal that's fine, the first Trace::push_back() will fail and we ignore it
+    for (Element* elem : other.sequence) push_back(elem);
+
+    return true;
 }
 
 void Trace::show_sequence() {
     std::cout << "sequence length: " << sequence.size() << " elements\n";
     int i = 0;
-    for (auto& elem : sequence) {
+    for (Element* elem : sequence) {
         std::cout << i << ". ";
-        if (std::holds_alternative<MaximalConsistentSet>(elem)) {
+        if (std::holds_alternative<MaximalConsistentSet*>(*elem)) {
             std::cout << "mcs: ";
-            std::get<MaximalConsistentSet>(elem).show_formulas();
-        } else if (std::holds_alternative<Cluster>(elem)) {
+            std::get<MaximalConsistentSet*>(*elem)->show_formulas();
+        } else if (std::holds_alternative<Cluster*>(*elem)) {
             std::cout << "cluster: ";
-            std::get<Cluster>(elem).show_formulas();
+            std::get<Cluster*>(*elem)->show_formulas();
         }
     }
 }
