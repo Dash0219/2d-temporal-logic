@@ -45,7 +45,7 @@ bool Trace::push_back(Element* elem) {
     return false;
 }
 
-bool Trace::join(Trace& other) {
+bool Trace::join(const Trace& other) {
     if (sequence.size() == 0 || other.sequence.size() == 0) return false;
 
     auto& back  = *sequence.back();

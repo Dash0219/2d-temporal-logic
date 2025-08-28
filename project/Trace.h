@@ -11,13 +11,12 @@ public:
     std::vector<Element*> sequence;
 
     Trace();
-    // Trace(Cluster* cluster);
 
     bool operator==(const Trace& other) const;
 
     // bool contains_formula(std::string& str);
     bool push_back(Element* elem);
-    bool join(Trace& other);
+    bool join(const Trace& other);
     void show_sequence();
     int size();
 };
