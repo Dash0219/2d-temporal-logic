@@ -204,6 +204,9 @@ void Formula::generate_closure_set() {
         new_members.insert("~" + fmla);
     closure_set.insert(new_members.begin(), new_members.end());
 
+    int i = 0;
+    for (const std::string& fmla : closure_set) id_to_string[i++] = fmla;
+
     // std::unordered_set<std::string> copy(closure_set);
     // for (const std::string& fmla : copy) {
     //     if (fmla[0] == '~' && fmla.size() > 2) {
@@ -225,6 +228,12 @@ void Formula::generate_MCS_and_clusters() {
 void Formula::_generate_MCS_step(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases, int current) {
     if (current == props_and_temps.size()) {
         _get_mcs_from_valuations(props_and_temps, true_bases);
+        int boo = irreflexives.size() + clusters.size();
+        if (boo % 100 == 0) {
+            std::cout << "finding elements: " << boo << " ";
+            print_memory_usage();
+        } 
+
         return;
     }
     _generate_MCS_step(props_and_temps, true_bases, current + 1);

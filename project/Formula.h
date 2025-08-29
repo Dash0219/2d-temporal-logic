@@ -22,6 +22,7 @@ public:
     std::unordered_set<std::string> propositions;
     std::unordered_set<std::string> temporal_formulas;
     std::unordered_set<std::string> closure_set;
+    std::unordered_map<int, std::string> id_to_string;
 
     std::list<MaximalConsistentSet*> irreflexives;
     std::list<Cluster*> clusters;
@@ -41,6 +42,13 @@ public:
     void show_irreflexives();
     void show_clusters(bool show_all_mcs = false);
     void show_graphs();
+
+    void print_memory_usage() {
+        struct rusage usage;
+        getrusage(RUSAGE_SELF, &usage);
+    
+        std::cout << "Max memory used: " << usage.ru_maxrss / 1024 << " MB" << "\n";
+    }
 
 private:
     ASTNode* root = nullptr;

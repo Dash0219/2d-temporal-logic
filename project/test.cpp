@@ -475,10 +475,14 @@ int main() {
         // "(p\\/r)",
         // "~((p->p)->(q->q))",
         // "(q/\\~(q/\\(p/\\q)))",
-        "~((p0->F~(p1/\\p2))->(Pp3->Pp3))",
+
+        // "~((p0->F~(p1/\\p2))->(Pp3->Pp3))",
+
         // "((p0->F~(p1/\\p2))->(Pq->Pq))",
         // "(~((p0->~(p1/\\p2))->(p3->p4))/\\~((p5->~(p6/\\p7))->(p8->p9)))",
         // "(~((p0->~(p1/\\p2))->(p3->p4))/\\~((p5->~(p6/\\p7))->(p8->Pp9)))",
+
+        // "(~((p0->~(p1/\\Fp2))->(Fp3->Fp4))/\\~((p2->~(p0/\\Fp1))->(p2->p0)))",
         // "~~~~Fp", 
         // "P(Fp\\/(Pp\\/p))",
         // "(Fp\\/(Pp\\/p))",
@@ -491,7 +495,7 @@ int main() {
         // "(Fp/\\Gp)",
         // "Pp",
         // "PPPPPPPPPp", // 10
-        // "PPPPPPPPPPPPPPp", // 15
+        "PPPPPPPPPPPPPPp", // 15
         // "HHHHHHHHHHHHHHHHHHHp", // 20
     };
 
@@ -507,9 +511,9 @@ int main() {
             // fmla.show_temporal_formulas();
             // fmla.show_closure_set();
 
-            fmla.show_irreflexives();
-            fmla.show_clusters(true);
-            fmla.show_graphs();
+            // fmla.show_irreflexives();
+            // fmla.show_clusters(true);
+            // fmla.show_graphs();
 
             BottomUpAlgorithm algo;
             if (algo.run(fmla, true)) {
@@ -524,11 +528,10 @@ int main() {
         }
 
         // debugging functions
-        std::vector<std::vector<bool>> g;
-        g = create_and_print_graph(fmla, false);
+        // std::vector<std::vector<bool>> g;
+        // g = create_and_print_graph(fmla, false);
         // trace_test(fmla);
         // print_memory_usage();
-        // std::cout << (**fmla->irreflexives.begin() <= **fmla->clusters.begin()) << " " << (**fmla->irreflexives.begin() <= **fmla->clusters.begin()) << "\n";
     }
 
     return 0;
