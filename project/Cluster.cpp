@@ -1,8 +1,9 @@
+#include "Formula.h"
 #include "Cluster.h"
 // #include "MaximalConsistentSet.h"
 
-Cluster::Cluster(MaximalConsistentSet* mcs)
-    : size(1), representative(mcs), formulas(mcs->formulas), sets({mcs}) {}
+Cluster::Cluster(Formula& parent, MaximalConsistentSet* mcs)
+    : parent(parent), size(1), representative(mcs), formulas(mcs->formulas), sets({mcs}) {}
 
 // if i built the clusters correctly then just comparing the reps should be enough.
 bool Cluster::operator==(const Cluster& other) const {
@@ -20,7 +21,8 @@ bool Cluster::operator<=(const MaximalConsistentSet& other) const {
 void Cluster::show_formulas() const {
     std::cout << "{";
     bool first = true;
-    for (const std::string& f : formulas) {
+    for (int id : formulas) {
+        const std::string& f = parent.id_to_string[id];
         if (!first) std::cout << ", ";
         std::cout << f;
         first = false;

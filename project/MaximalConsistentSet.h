@@ -5,15 +5,16 @@
 #include <string>
 
 
+class Formula;
 class Cluster;
 
 
 class MaximalConsistentSet {
 public:
-    MaximalConsistentSet(const std::unordered_set<std::string>& closure_set);
+    MaximalConsistentSet(Formula& parent);
 
-    std::unordered_set<std::string> formulas;
-    std::unordered_set<std::string> closure_set;
+    Formula& parent;
+    std::unordered_set<int> formulas;
     
     bool operator==(const MaximalConsistentSet& other) const;
     bool operator<=(const MaximalConsistentSet& other) const;
@@ -26,14 +27,27 @@ private:
 };
 
 
+// namespace std {
+//     template <>
+//     struct hash<MaximalConsistentSet> {
+//         size_t operator()(const MaximalConsistentSet& mcs) const noexcept {
+//             size_t h = 0;
+//             std::hash<std::string> str_hash;
+//             for (const auto& f : mcs.formulas) {
+//                 h ^= str_hash(f) + 0x9e3779b9 + (h << 6) + (h >> 2);
+//             }
+//             return h;
+//         }
+//     };
+// }
+
 namespace std {
     template <>
     struct hash<MaximalConsistentSet> {
         size_t operator()(const MaximalConsistentSet& mcs) const noexcept {
             size_t h = 0;
-            std::hash<std::string> str_hash;
-            for (const auto& f : mcs.formulas) {
-                h ^= str_hash(f) + 0x9e3779b9 + (h << 6) + (h >> 2);
+            for (const int& id : mcs.formulas) {
+                h ^= id + 0x9e3779b9 + (h << 6) + (h >> 2);
             }
             return h;
         }

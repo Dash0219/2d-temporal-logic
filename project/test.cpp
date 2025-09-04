@@ -476,7 +476,7 @@ int main() {
         // "~((p->p)->(q->q))",
         // "(q/\\~(q/\\(p/\\q)))",
 
-        // "~((p0->F~(p1/\\p2))->(Pp3->Pp3))",
+        "~((p0->F~(p1/\\p2))->(Pp3->Pp3))",
 
         // "((p0->F~(p1/\\p2))->(Pq->Pq))",
         // "(~((p0->~(p1/\\p2))->(p3->p4))/\\~((p5->~(p6/\\p7))->(p8->p9)))",
@@ -495,7 +495,7 @@ int main() {
         // "(Fp/\\Gp)",
         // "Pp",
         // "PPPPPPPPPp", // 10
-        "PPPPPPPPPPPPPPp", // 15
+        // "PPPPPPPPPPPPPPp", // 15
         // "HHHHHHHHHHHHHHHHHHHp", // 20
     };
 
@@ -515,8 +515,8 @@ int main() {
             // fmla.show_clusters(true);
             // fmla.show_graphs();
 
-            BottomUpAlgorithm algo;
-            if (algo.run(fmla, true)) {
+            BottomUpAlgorithm algo(fmla);
+            if (algo.run(true)) {
                 std::cout << "SAT\n";
             } else {
                 std::cout << "not SAT\n";

@@ -205,7 +205,11 @@ void Formula::generate_closure_set() {
     closure_set.insert(new_members.begin(), new_members.end());
 
     int i = 0;
-    for (const std::string& fmla : closure_set) id_to_string[i++] = fmla;
+    for (const std::string& fmla : closure_set) {
+        id_to_string[i] = fmla;
+        string_to_id[fmla] = i;
+        ++i;
+    }
 
     // std::unordered_set<std::string> copy(closure_set);
     // for (const std::string& fmla : copy) {
@@ -244,12 +248,12 @@ void Formula::_generate_MCS_step(std::vector<std::string>& props_and_temps, std:
 
 void Formula::_get_mcs_from_valuations(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases) {
     // MaximalConsistentSet mcs(closure_set);
-    MaximalConsistentSet* mcs = new MaximalConsistentSet(closure_set);
+    MaximalConsistentSet* mcs = new MaximalConsistentSet(*this);
     
     // MaximalConsistentSet& mcs = mcs_storage.emplace_back(MaximalConsistentSet(closure_set));
     std::unordered_map<std::string, bool> cache;
     for (const std::string& fmla : closure_set) {
-        if (_evaluate(const_cast<std::string&>(fmla), true_bases, cache)) mcs->formulas.insert(fmla);
+        if (_evaluate(const_cast<std::string&>(fmla), true_bases, cache)) mcs->formulas.insert(string_to_id[fmla]);
     }
 
     // check all the existing clusters,
@@ -269,7 +273,7 @@ void Formula::_get_mcs_from_valuations(std::vector<std::string>& props_and_temps
 
     // create a new singleton cluster if the mcs is reflexive
     if (*mcs <= *mcs) {
-        Cluster* new_cluster = new Cluster(mcs);
+        Cluster* new_cluster = new Cluster(*this, mcs);
         clusters.push_back(new_cluster);
     } else {
         irreflexives.push_back(mcs);

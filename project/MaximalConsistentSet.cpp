@@ -1,9 +1,10 @@
-#include "MaximalConsistentSet.h"
+#include "Formula.h"
 #include "Cluster.h"
+#include "MaximalConsistentSet.h"
 
 
-MaximalConsistentSet::MaximalConsistentSet(const std::unordered_set<std::string>& closure)
-    : closure_set(closure) {}
+MaximalConsistentSet::MaximalConsistentSet(Formula& parent)
+    : parent(parent) {}
 
 bool MaximalConsistentSet::operator==(const MaximalConsistentSet& other) const {
     // for (auto& fmla : formulas)       if (!other.formulas.contains(fmla)) return false;
@@ -13,22 +14,24 @@ bool MaximalConsistentSet::operator==(const MaximalConsistentSet& other) const {
 }
 
 bool MaximalConsistentSet::operator<=(const MaximalConsistentSet& other) const {
-    for (const std::string& fmla : closure_set) {
-
+    int closure_set_size = parent.closure_set.size();
+    for (int id = 0; id < closure_set_size; ++id) {
+        std::string fmla = parent.id_to_string[id];
         std::string phi = fmla.substr(1);
+        int phi_id = (parent.string_to_id.contains(phi)) ? parent.string_to_id[phi] : -1; 
 
         if (fmla[0] == 'F') {
-            if (other.formulas.contains(phi) && !formulas.contains(fmla) ||
-                other.formulas.contains(fmla) && !formulas.contains(fmla)) return false;
+            if (other.formulas.contains(phi_id) && !formulas.contains(id) ||
+                other.formulas.contains(id) && !formulas.contains(id)) return false;
         } else if (fmla[0] == 'P') {
-            if (formulas.contains(phi) && !other.formulas.contains(fmla) ||
-                formulas.contains(fmla) && !other.formulas.contains(fmla)) return false;
+            if (formulas.contains(phi_id) && !other.formulas.contains(id) ||
+                formulas.contains(id) && !other.formulas.contains(id)) return false;
         } else if (fmla[0] == 'G') {
-            if (formulas.contains(fmla) && !other.formulas.contains(phi) ||
-                formulas.contains(fmla) && !other.formulas.contains(fmla)) return false;
+            if (formulas.contains(id) && !other.formulas.contains(phi_id) ||
+                formulas.contains(id) && !other.formulas.contains(id)) return false;
         } else if (fmla[0] == 'H') {
-            if (other.formulas.contains(fmla) && !formulas.contains(phi) ||
-                other.formulas.contains(fmla) && !formulas.contains(fmla)) return false;
+            if (other.formulas.contains(id) && !formulas.contains(phi_id) ||
+                other.formulas.contains(id) && !formulas.contains(id)) return false;
         } 
 
         // else if (fmla[0] == '~' && fmla.size() > 2) {
@@ -54,7 +57,8 @@ bool MaximalConsistentSet::operator<=(const Cluster& other) const {
 void MaximalConsistentSet::show_formulas() const {
     std::cout << "{";
     bool first = true;
-    for (const std::string& f : MaximalConsistentSet::formulas) {
+    for (int id : formulas) {
+        const std::string& f = parent.id_to_string[id];
         if (!first) std::cout << ", ";
         std::cout << f;
         first = false;

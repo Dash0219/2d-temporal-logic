@@ -23,6 +23,7 @@ public:
     std::unordered_set<std::string> temporal_formulas;
     std::unordered_set<std::string> closure_set;
     std::unordered_map<int, std::string> id_to_string;
+    std::unordered_map<std::string, int> string_to_id;
 
     std::list<MaximalConsistentSet*> irreflexives;
     std::list<Cluster*> clusters;
