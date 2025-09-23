@@ -50,21 +50,6 @@ void Formula::show_closure_set() {
     std::cout << std::string(32, '=') << "\n";
 }
 
-// void Formula::show_MCS() {
-//     std::cout << "MCS of " << content << ": " << mcs_storage.size() << " elements\n";
-//     for (const MaximalConsistentSet& mcs : mcs_storage) {
-//         std::cout << "{";
-//         bool first = true;
-//         for (const std::string& f : mcs.formulas) {
-//             if (!first) std::cout << ", ";
-//             std::cout << f;
-//             first = false;
-//         }
-//         std::cout << "}\n";
-//     }
-//     std::cout << std::string(32, '=') << "\n";
-// }
-
 void Formula::show_irreflexives() {
     int idx = 0;
     std::cout << "irreflexives of " << content << ": " << irreflexives.size() << " elements\n";
@@ -104,9 +89,11 @@ void Formula::show_graphs() {
 
     for (Element* elem_ptr : elements) {
         if (std::holds_alternative<Cluster*>(*elem_ptr)) {
-            std::cout << "c" << (c++) << ":\n";
+            std::cout << "c" << (c++) << ": ";
+            std::cout << std::get<Cluster*>(*elem_ptr)->formulas.contains(string_to_id[content]) << "\n";
         } else if (std::holds_alternative<MaximalConsistentSet*>(*elem_ptr)) {
-            std::cout << "i" << (i++) << ":\n";
+            std::cout << "i" << (i++) << ": ";
+            std::cout << std::get<MaximalConsistentSet*>(*elem_ptr)->formulas.contains(string_to_id[content]) << "\n";
         }
 
         std::cout << "pre: ";
@@ -153,7 +140,9 @@ bool Formula::parse_and_build_tree(std::string& input, ASTNode*& node) {
         if (input[0] == '~') {
             closure_set.insert(input);
         } else {
-            temporal_formulas.insert(input), closure_set.insert(input);
+            // TODO: remove
+            // temporal_formulas.insert(input);
+            closure_set.insert(input);
         }
         return true;
     } else if (input[0] == '(') {
@@ -191,7 +180,8 @@ bool Formula::parse_and_build_tree(std::string& input, ASTNode*& node) {
     } else {
         for (char c : input) if (!std::islower(c) && !std::isdigit(c) && c != '_') return false;
         node->content = input;
-        propositions.insert(input);
+        // TODO: remove
+        // propositions.insert(input);
         closure_set.insert(input);
         return true;
     }
@@ -199,26 +189,33 @@ bool Formula::parse_and_build_tree(std::string& input, ASTNode*& node) {
 }
 
 void Formula::generate_closure_set() {
+    // add negations
     std::unordered_set<std::string> new_members;
     for (const std::string& fmla : closure_set)
         new_members.insert("~" + fmla);
     closure_set.insert(new_members.begin(), new_members.end());
 
+    // perform identites on closure set elements
+    new_members.clear();
+    for (const std::string& fmla : closure_set) 
+        new_members.insert(transform_formula(fmla));
+    closure_set = new_members;
+
+    for (const std::string& fmla : closure_set) {
+        if (fmla[0] == 'F' || fmla[0] == 'P' || fmla[0] == 'G' || fmla[0] == 'H') {
+            temporal_formulas.insert(fmla);
+        } else if (fmla[0] != '~' && fmla[0] != '(') {
+            propositions.insert(fmla);
+        }
+    }
+
+    // assign id to closure set elements
     int i = 0;
     for (const std::string& fmla : closure_set) {
         id_to_string[i] = fmla;
         string_to_id[fmla] = i;
         ++i;
     }
-
-    // std::unordered_set<std::string> copy(closure_set);
-    // for (const std::string& fmla : copy) {
-    //     if (fmla[0] == '~' && fmla.size() > 2) {
-    //         closure_set.erase(fmla);
-    //         std::string transformed_fmla = _move_in_negations(fmla);
-    //         closure_set.insert(transformed_fmla);
-    //     }
-    // }
 }
 
 void Formula::generate_MCS_and_clusters() {
@@ -231,12 +228,12 @@ void Formula::generate_MCS_and_clusters() {
 
 void Formula::_generate_MCS_step(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases, int current) {
     if (current == props_and_temps.size()) {
-        _get_mcs_from_valuations(props_and_temps, true_bases);
-        int boo = irreflexives.size() + clusters.size();
-        if (boo % 100 == 0) {
-            std::cout << "finding elements: " << boo << " ";
-            print_memory_usage();
-        } 
+        _get_mcs_from_valuations(true_bases);
+        // int boo = irreflexives.size() + clusters.size();
+        // if (boo % 100 == 0) {
+        //     std::cout << "finding elements: " << boo << " ";
+        //     print_memory_usage();
+        // } 
 
         return;
     }
@@ -246,14 +243,23 @@ void Formula::_generate_MCS_step(std::vector<std::string>& props_and_temps, std:
     true_bases.erase(props_and_temps[current]);
 }
 
-void Formula::_get_mcs_from_valuations(std::vector<std::string>& props_and_temps, std::unordered_set<std::string>& true_bases) {
+void Formula::_get_mcs_from_valuations(std::unordered_set<std::string>& true_bases) {
     // MaximalConsistentSet mcs(closure_set);
     MaximalConsistentSet* mcs = new MaximalConsistentSet(*this);
     
     // MaximalConsistentSet& mcs = mcs_storage.emplace_back(MaximalConsistentSet(closure_set));
     std::unordered_map<std::string, bool> cache;
+    std::unordered_set<std::string> s;
     for (const std::string& fmla : closure_set) {
-        if (_evaluate(const_cast<std::string&>(fmla), true_bases, cache)) mcs->formulas.insert(string_to_id[fmla]);
+        if (_evaluate(const_cast<std::string&>(fmla), true_bases, cache)) {
+            mcs->formulas.insert(string_to_id[fmla]);
+            s.insert(fmla);
+        }
+    }
+    
+    if (!_mcs_consistent(s)) {
+        delete(mcs);
+        return;
     }
 
     // check all the existing clusters,
@@ -279,6 +285,66 @@ void Formula::_get_mcs_from_valuations(std::vector<std::string>& props_and_temps
         irreflexives.push_back(mcs);
     }
 }
+
+bool Formula::_mcs_consistent(std::unordered_set<std::string>& s) {
+    // if FFa in Cl(), FFa in S IFF Fa in S
+    // if PPa in Cl(), PPa in S IFF Pa in S
+    // if GGa in Cl(), GGa in S IFF Ga in S
+    // if HHa in Cl(), HHa in S IFF Ha in S
+
+    // if Ga, Gb, G(a->b) in Cl(), (Ga in S and G(a->b) in S) -> Gb in S
+    // if Ha, Hb, H(a->b) in Cl(), (Ha in S and H(a->b) in S) -> Hb in S
+
+    // if GPa in Cl() and a in S, GPa in S
+    // if HFa in Cl() and a in S, HFa in S
+
+    for (std::string fmla : closure_set) {
+        if (fmla.size() < 3) continue;
+
+        if (fmla[0] == 'F' && fmla[1] == 'F' || 
+            fmla[0] == 'P' && fmla[1] == 'P' || 
+            fmla[0] == 'G' && fmla[1] == 'G' || 
+            fmla[0] == 'H' && fmla[1] == 'H') 
+        {
+            if (s.contains(fmla) ^ s.contains(fmla.substr(1))) return false;
+        }
+
+        if (fmla[0] == 'G' && fmla[1] == '(' && fmla.back() == ')') {
+            int n = fmla.size();
+            int implication_pos = -1;
+            int depth = 0;
+
+            for (int i = 0; i < n; ++i) {
+                char c = fmla[i];
+                if (c == '(') {
+                    ++depth;
+                } else if (c == ')') {
+                    --depth;
+                } else if (depth == 1 && c == '-') {
+                    implication_pos = i;
+                    break;
+                }
+            }
+
+            if (implication_pos == -1) continue;
+
+            std::string a = fmla.substr(2, implication_pos - 2);
+            std::string b = fmla.substr(implication_pos + 2, n - implication_pos - 3);
+            std::string Ga = "G" + a;
+            std::string Gb = "G" + b;
+
+            if (s.contains(Ga) && s.contains(fmla) && !s.contains(Gb)) return false;
+        }
+
+        if (fmla[0] == 'G' && fmla[1] == 'P' && s.contains(fmla.substr(2)))
+            if (!s.contains(fmla)) return false;
+        if (fmla[0] == 'H' && fmla[1] == 'F' && s.contains(fmla.substr(2))) 
+            if (!s.contains(fmla)) return false;
+    }
+
+    return true;
+}
+
 
 void Formula::generate_elements() {
     for (MaximalConsistentSet* i : irreflexives) {
@@ -369,4 +435,55 @@ void Formula::generate_graphs() {
             if (element_leq(*other_ptr, *elem_ptr)) pre[elem_ptr].emplace_back(other_ptr);
         }
     }
+}
+
+std::string Formula::transform_formula(const std::string& fmla) {
+    std::string result = fmla;
+    bool changes = true;
+
+    while (changes) {
+        changes = false;
+
+        std::string new_result = "";
+        int n = result.size();
+        int i = 0;
+        while (i < n - 1) {
+            if (result[i] == '~') {
+                if (result[i + 1] == 'F') {
+                    new_result.push_back('G');
+                    new_result.push_back('~');
+                    changes = true;
+                    ++i;
+                } else if (result[i + 1] == 'P') {
+                    new_result.push_back('H');
+                    new_result.push_back('~');
+                    changes = true;
+                    ++i;
+                } else if (result[i + 1] == 'G') {
+                    new_result.push_back('F');
+                    new_result.push_back('~');
+                    changes = true;
+                    ++i;
+                } else if (result[i + 1] == 'H') {
+                    new_result.push_back('P');
+                    new_result.push_back('~');
+                    changes = true;
+                    ++i;
+                } else if (result[i + 1] == '~') {
+                    changes = true;
+                    ++i;
+                } else {
+                    new_result.push_back('~');
+                }
+            } else {
+                new_result.push_back(result[i]);
+            }
+
+            ++i;
+        }
+
+        new_result.push_back(result.back());
+        result = new_result;
+    }
+    return result;
 }

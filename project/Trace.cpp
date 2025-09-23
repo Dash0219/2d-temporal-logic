@@ -6,6 +6,13 @@ using Element = std::variant<MaximalConsistentSet*, Cluster*>;
 Trace::Trace() {};
 
 bool Trace::operator==(const Trace& other) const {
+    // if (sequence.size() != other.sequence.size()) return false;
+
+    // int n = sequence.size();
+    // for (int i = 0; i < n; ++i) {
+    //     if (sequence[i] != other.sequence[i]) return false;
+    // }
+    // return true;
     return sequence == other.sequence;
 }
 

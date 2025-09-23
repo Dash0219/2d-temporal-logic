@@ -23,13 +23,6 @@ public:
     bool is_open() const;
     bool is_closed() const;
     bool is_one_point() const;
-    // bool is_fabricated();
-    // bool contains_formula(std::string& str);
-    // bool has_internal_defects();
-    // bool join(BoundaryMap& other, int direction);
-    // bool limit(); // TODO: we have a different def than the paper
-    // bool shuffle(std::vector<BoundaryMap>& others);
-
 };
 
 

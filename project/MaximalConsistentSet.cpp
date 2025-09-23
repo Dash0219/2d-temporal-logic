@@ -18,7 +18,7 @@ bool MaximalConsistentSet::operator<=(const MaximalConsistentSet& other) const {
     for (int id = 0; id < closure_set_size; ++id) {
         std::string fmla = parent.id_to_string[id];
         std::string phi = fmla.substr(1);
-        int phi_id = (parent.string_to_id.contains(phi)) ? parent.string_to_id[phi] : -1; 
+        int phi_id = (parent.string_to_id.contains(phi)) ? parent.string_to_id[phi] : -1;
 
         if (fmla[0] == 'F') {
             if (other.formulas.contains(phi_id) && !formulas.contains(id) ||

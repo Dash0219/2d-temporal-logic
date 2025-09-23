@@ -2,3 +2,4 @@
 settings.json
 test
 test.dSYM
+*.txt

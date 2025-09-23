@@ -34,7 +34,8 @@ bool BoundaryMap::is_open() const {
 bool BoundaryMap::is_closed() const {
     return l.has_value() && r.has_value() && t.has_value() && b.has_value() 
         && n.has_value() && e.has_value() && s.has_value() && w.has_value() 
-        && plus.has_value() && minus.has_value();
+        && plus.has_value() && minus.has_value() ||
+        is_one_point();
 }
 
 // {t, b}, t == b
